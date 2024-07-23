@@ -1,4 +1,4 @@
-from Structures.Client import bot
+from Structures.Client import Bot
 
 
 class Message:
@@ -9,28 +9,28 @@ class Message:
 
     mentioned = []
 
-    def __init__(self, bot, message):
+    def __init__(self, client: Bot, message):  # type: ignore
         self.__M = message
         self.Info = self.__M.chat
         self.message = self.__M.text
-        self.__client = bot
-        user_id = self.Info.chat.from_user.id
+        self.__client = client
+        user_id = self.__M.from_user.id
         self.sender = {
             "user_id": user_id,
-            "username": self.Info.chat.from_user.username
+            "user_name": self.__M.from_user.username
         }
         self.chat = "SUPERGROUP" if str(message.chat.type)[
             len("ChatType."):].strip() else "PRIVATE"
-        self.gcjid = self.Info.id
+        self.chatid = self.Info.id
         self.type = str(message.chat.type)[
             len("MessageMediaType."):].strip()
         self.content = message.text
 
-        if (self.Message.extendedTextMessage.contextInfo.quotedMessage.extendedTextMessage.contextInfo.mentionedJID):
-            for mention in self.Message.extendedTextMessage.contextInfo.quotedMessage.extendedTextMessage.contextInfo.mentionedJID:
+        if message.entities[1].type[len("MessageEntityType."):].strip() == "MENTION":
+            for mention in [mention for mention in self.__M.command[1:] if mention.startswith('@')]:
                 self.mentioned.append({
-                    "chat_id": self.__client.build_jid(mention).User,
-                    "username": self.__client.contact.get_contact(self.__client.build_jid(mention)).PushName
+                    "user_id": self.__client.get_users(mention).id,
+                    "user_name": self.__client.get_users(mention).id.username
                 })
         elif (self.Message.extendedTextMessage.contextInfo.participant):
             self.mentioned.append({
