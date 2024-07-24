@@ -2,6 +2,8 @@ import os
 import importlib.util
 from Structures.Client import Bot
 from Structures.Message import Message
+from pyrogram import filters
+from pyrogram.handlers import MessageHandler
 
 
 class MessageHandler:
@@ -12,8 +14,8 @@ class MessageHandler:
         self.__client = client
 
     def handler(self, M: Message):
-        contex = self.parse_args(M.content)
-        isCommand = M.content.startswith(self.__client.prifix)
+        contex = self.parse_args(M.message)
+        isCommand = M.message.startswith(self.__client.prifix)
 
         chat_type = "[CMD]: " if isCommand else "[MDG]: "
         _from = "SUPERGROUP" if str(M.chat.type)[
