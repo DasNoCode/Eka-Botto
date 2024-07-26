@@ -1,19 +1,19 @@
 import os
 import importlib.util
-from Structures.Client import Bot
+from Structures.Client import SuperClient
 from Structures.Message import Message
-from Helpers.DynamicConfig import DynamicConfig
+from Helpers.JsonObject import JsonObject
 
 
 class MessageHandler:
 
     commands = {}
 
-    def __init__(self, client: Bot):
+    def __init__(self, client: SuperClient):
         self.__client = client
 
     async def handler(self, M: Message):
-        contex = DynamicConfig(self.parse_args(M.message))
+        contex = JsonObject(self.parse_args(M.message))
         isCommand = M.message.startswith(self.__client.prifix)
 
         if not isCommand:

@@ -1,14 +1,13 @@
-from Structures.Client import Bot
-from src.Helpers.DynamicConfig import DynamicConfig
+from Structures.Client import SuperClient
+from Helpers.JsonObject import JsonObject
 
 
 class BaseCommand:
-    def __init__(self, client: Bot, handler, config):
+    def __init__(self, client: SuperClient, handler, config):
         self.client = client
         self.handler = handler
-        self.config = DynamicConfig(config)
+        self.config = JsonObject(config)
 
     async def exec(self, msg, arg):
-        # raise "Exec Function must be decleared"
         raise NotImplementedError(
             "Exec function must be declared in subclasses")

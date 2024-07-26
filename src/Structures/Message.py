@@ -1,5 +1,5 @@
-from Structures.Client import Bot
-from Helpers.DynamicConfig import DynamicConfig
+from Structures.Client import SuperClient
+from Helpers.JsonObject import JsonObject
 
 
 class Message:
@@ -8,12 +8,12 @@ class Message:
     numbers = []
     mentioned = []
 
-    def __init__(self, client: Bot, message):  # type: ignore
+    def __init__(self, client: SuperClient, message):  # type: ignore
         self.__m = message
         self.message = self.__m.text
         self.__client = client
         user_id = self.__m.from_user.id
-        self.sender = DynamicConfig({
+        self.sender = JsonObject({
             "user_id": user_id,
             "user_name": self.__m.from_user.username
         })
