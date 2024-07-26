@@ -2,41 +2,34 @@ import os
 import importlib.util
 from Structures.Client import Bot
 from Structures.Message import Message
-from pyrogram import filters
-from pyrogram.handlers import MessageHandler
+from Helpers.DynamicConfig import DynamicConfig
 
 
 class MessageHandler:
 
     commands = {}
 
-    def __init__(self, client: Bot):  # type: ignore
+    def __init__(self, client: Bot):
         self.__client = client
 
-    def handler(self, M: Message):
-        contex = self.parse_args(M.message)
+    async def handler(self, M: Message):
+        contex = DynamicConfig(self.parse_args(M.message))
         isCommand = M.message.startswith(self.__client.prifix)
-
-        chat_type = "[CMD]: " if isCommand else "[MDG]: "
-        _from = "SUPERGROUP" if str(M.chat.type)[
-            len("ChatType."):].strip() else "PRIVATE"
-        user_name = M.sender["user_name"]
-        self.__client.log.info(f"{chat_type} from {user_name} in {_from}")
 
         if not isCommand:
             return
 
-        if (M.content == self.__client.prifix):
-            return self.__client.reply_message(f"Enter a command following {self.__client.prifix}", M)
+        if (M.message == self.__client.prifix):
+            return await self.__client.send_message(M.chat_id, f"Enter a command following {self.__client.prifix}")
 
-        cmd = self.commands[contex.get("cmd")] if contex.get(
-            "cmd") in self.commands.keys() else None
+        cmd = self.commands[contex.cmd] if contex.cmd in self.commands.keys(
+        ) else None
 
         if not cmd:
-            return self.__client.reply_message("Command does not avilable!!", M)
-        cmd.exec(M, contex)
+            return await self.__client.send_message(M.chat_id, "Command does not available!!")
+        await cmd.exec(M, contex)
 
-    def load_commands(self, folder_path):
+    async def load_commands(self, folder_path):
         for filename in os.listdir(folder_path):
             if filename.endswith('.py'):
                 module_name = filename[:-3]
@@ -49,13 +42,11 @@ class MessageHandler:
 
                 class_ = getattr(module, "Command")
                 instance = class_(self.__client, self)
-                self.commands[instance.config["command"]] = instance
+                self.commands[instance.config.command] = instance
                 aliases = instance.config["aliases"] if hasattr(
                     instance.config, "aliases") else []
                 for alias in aliases:
                     self.commands[alias] = instance
-
-                self.__client.log.info("Loaded all the commands!")
 
     def parse_args(self, raw):
         args = raw.split(' ')
