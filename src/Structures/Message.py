@@ -8,20 +8,32 @@ class Message:
     numbers = []
     mentioned = []
 
-    def __init__(self, client: SuperClient, message):  # type: ignore
-        self.__m = message
-        self.message = self.__m.text
+    def __init__(self, client: SuperClient, message_or_callback):  # type: ignore
         self.__client = client
-        user_id = self.__m.from_user.id
-        self.sender = JsonObject({
-            "user_id": user_id,
-            "user_name": self.__m.from_user.username
-        })
+        self.is_callback = "CallbackQuery" in str(type(message_or_callback))
+
+        if self.is_callback:
+            self.__m = message_or_callback.message
+            self.message = message_or_callback.data
+            user_id = message_or_callback.from_user.id
+            self.sender = JsonObject({
+                "user_id": user_id,
+                "user_name": message_or_callback.from_user.username
+            })
+        else:
+            self.__m = message_or_callback
+            self.message = self.__m.text
+            user_id = self.__m.from_user.id
+            self.sender = JsonObject({
+                "user_id": user_id,
+                "user_name": self.__m.from_user.username
+            })
+
         self.chat_info = self.__m.chat
-        self.chat_type = "SUPERGROUP" if str(message.chat.type)[
+        self.chat_type = "SUPERGROUP" if str(self.__m.chat.type)[
             len("ChatType."):].strip() else "PRIVATE"
         self.chat_id = self.chat_info.id
-        self.msg_type = str(message.chat.type)[
+        self.msg_type = str(self.__m.chat.type)[
             len("MessageMediaType."):].strip()
 
         self.mentioned = []

@@ -29,7 +29,7 @@ class MessageHandler:
             return await self.__client.send_message(M.chat_id, "Command does not available!!")
         await cmd.exec(M, contex)
 
-    async def load_commands(self, folder_path):
+    def load_commands(self, folder_path):
         for filename in os.listdir(folder_path):
             if filename.endswith('.py'):
                 module_name = filename[:-3]

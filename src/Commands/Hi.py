@@ -1,5 +1,6 @@
 from Structures.Command.BaseCommand import BaseCommand
 from Structures.Message import Message
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 
 class Command(BaseCommand):
@@ -15,4 +16,7 @@ class Command(BaseCommand):
         })
 
     async def exec(self, M: Message, contex):
-        await self.client.send_message(M.chat_id, "hey ")
+        keybord = InlineKeyboardMarkup(
+            [
+                [InlineKeyboardButton("Git-Hub", callback_data="/hi")]])
+        await self.client.send_message(M.chat_id, "hey", reply_markup=keybord)
