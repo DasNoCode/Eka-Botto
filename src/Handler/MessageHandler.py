@@ -1,3 +1,4 @@
+
 import os
 import importlib.util
 from Structures.Client import SuperClient
@@ -56,11 +57,10 @@ class MessageHandler:
         flags = {}
 
         for arg in args:
-            if arg.startswith('--'):
-                key, value = arg[2:].split('=', 1)
-                flags[key] = value
-            elif arg.startswith('-'):
-                flags[arg] = ''
+            if arg.startswith('_'):
+                value = arg.split('_')
+                flags = value
+            print(flags)
         return {
             'cmd': cmd,
             'text': text,
