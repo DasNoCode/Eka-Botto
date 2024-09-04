@@ -29,6 +29,7 @@ async def on_message(client: SuperClient, message: Message):
 
 @Bot.on_callback_query()
 async def on_callback(client: SuperClient, callback: CallbackQuery):
+    callback.data = Bot.callback_data_map[callback.data]
     await instance.handler(await Message(client, callback).build())
 
 

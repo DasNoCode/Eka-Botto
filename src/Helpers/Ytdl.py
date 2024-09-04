@@ -49,7 +49,7 @@ class YouTubeDownloader:
         raise RegexMatchError(
             "get_throttling_function_name", "multiple patterns")
 
-    def audio_dl(self, url: str):
+    def audio_dl(url: str):
         """Download the audio from a YouTube video.
 
         :param str url: The URL of the YouTube video.
@@ -67,7 +67,7 @@ class YouTubeDownloader:
             print(f"Error downloading audio: {e}")
             return None, None, None
 
-    def video_dl(self, url: str):
+    def video_dl(url: str):
         """Download the video from a YouTube video.
 
         :param str url: The URL of the YouTube video.

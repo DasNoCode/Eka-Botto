@@ -64,8 +64,9 @@ class Utils:
 
     @staticmethod
     def extract_numbers(content):
-        numbers = re.findall(r'-?\d+', content)
-        return [max(int(n), 0) for n in numbers]
+        number_pattern = re.compile(r'\b\d+\b')
+        numbers = number_pattern.findall(content)
+        return numbers
 
     @staticmethod
     def get_random_int(min, max):
@@ -85,7 +86,9 @@ class Utils:
 
     @staticmethod
     def get_urls(text):
-        return set(re.findall(r'https?://[^\s]+', text))
+        url_pattern = re.compile(r'https?://\S+')
+        urls = url_pattern.findall(text)
+        return urls
 
     @staticmethod
     def gif_to_mp4(gif):

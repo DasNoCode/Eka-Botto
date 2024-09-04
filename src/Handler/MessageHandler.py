@@ -1,9 +1,8 @@
-
 import os
+import re
 import importlib.util
 from Structures.Client import SuperClient
 from Structures.Message import Message
-from Helpers.JsonObject import JsonObject
 
 
 class MessageHandler:
@@ -14,7 +13,7 @@ class MessageHandler:
         self.__client = client
 
     async def handler(self, M: Message):
-        contex = JsonObject(self.parse_args(M.message))
+        contex = self.parse_args(M.message)
         isCommand = M.message.startswith(self.__client.prifix)
 
         if not isCommand:
@@ -23,7 +22,7 @@ class MessageHandler:
         if (M.message == self.__client.prifix):
             return await self.__client.send_message(M.chat_id, f"Enter a command following {self.__client.prifix}")
 
-        cmd = self.commands[contex.cmd] if contex.cmd in self.commands.keys(
+        cmd = self.commands[contex[0]] if contex[0] in self.commands.keys(
         ) else None
 
         if not cmd:
@@ -54,17 +53,11 @@ class MessageHandler:
         cmd = args.pop(0).lower()[
             len(self.__client.prifix):] if args else ''
         text = ' '.join(args)
-        flags = {}
+        flags = {flag: (value if value else None)
+                 for flag, value in re.findall(r'--(\w+)(?:=(\S*))?', raw)}
 
-        for arg in args:
-            if arg.startswith('_'):
-                value = arg.split('_')
-                flags = value
-            print(flags)
-        return {
-            'cmd': cmd,
-            'text': text,
-            'flags': flags,
-            'args': args,
-            'raw': raw
-        }
+        return (cmd,
+                text,
+                flags,
+                args,
+                raw)
