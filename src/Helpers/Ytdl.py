@@ -2,6 +2,7 @@ from pytube import YouTube
 from pytube.innertube import _default_clients
 from pytube import cipher
 import re
+import os
 
 _default_clients["ANDROID"]["context"]["client"]["clientVersion"] = "19.08.35"
 _default_clients["IOS"]["context"]["client"]["clientVersion"] = "19.08.35"
@@ -46,16 +47,10 @@ class YouTubeDownloader:
                 else:
                     return func_name
 
-        raise RegexMatchError(
+        raise RegexMatchError(  # type: ignore
             "get_throttling_function_name", "multiple patterns")
 
     def audio_dl(url: str):
-        """Download the audio from a YouTube video.
-
-        :param str url: The URL of the YouTube video.
-        :rtype: tuple
-        :returns: A tuple containing the title of the audio stream, the path to the downloaded file, and the length of the video.
-        """
         try:
             yt = YouTube(url)
             audio_stream = yt.streams.filter(only_audio=True).first()
@@ -68,12 +63,6 @@ class YouTubeDownloader:
             return None, None, None
 
     def video_dl(url: str):
-        """Download the video from a YouTube video.
-
-        :param str url: The URL of the YouTube video.
-        :rtype: tuple
-        :returns: A tuple containing the title of the video stream, the path to the downloaded file, and the length of the video.
-        """
         try:
             yt = YouTube(url)
             video_stream = yt.streams.get_highest_resolution()
@@ -84,3 +73,15 @@ class YouTubeDownloader:
         except Exception as e:
             print(f"Error downloading video: {e}")
             return None, None, None
+
+    def delete():
+        media_extensions = {'.mp3', '.wav', '.mp4', '.avi',
+                            '.mov', '.mkv', '.flac', '.wmv', '.m4a'}
+
+        for filename in os.listdir("downloads"):
+            if filename.lower().endswith(media_extensions):
+                try:
+                    os.remove(os.path.join("downloads", filename))
+                    print(f"Deleted: {filename}")
+                except Exception as e:
+                    print(f"Error deleting {filename}: {e}")

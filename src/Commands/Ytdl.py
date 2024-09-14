@@ -1,4 +1,3 @@
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from Structures.Command.BaseCommand import BaseCommand
 from Helpers.Ytdl import YouTubeDownloader
 from Structures.Message import Message
@@ -22,15 +21,24 @@ class Command(BaseCommand):
         keys = list(contex[2].keys())
 
         if len(keys):
-            if keys[0] == "video":
-                title, path, length = YouTubeDownloader.video_dl(
-                    url=contex[2][keys[0]])
-                return await self.client.send_video(M.chat_id, path, caption=f"Title: {title}\nDuration: {length}")
+            try:
+                if keys[0] == "video":
+                    print(contex[2])
+                    title, path, length = YouTubeDownloader.video_dl(
+                        url=contex[2][keys[0]])
+                    await self.client.send_video(M.chat_id, path, caption=f"Title: {title}\nDuration: {length}")
+                    return YouTubeDownloader.delete()
+            except Exception as e:
+                return await self.client.send_message(M.chat_id, "Something went wrong !")
 
             if keys[0] == "audio":
-                title, path, length = YouTubeDownloader.audio_dl(
-                    url=contex[2][keys[0]])
-                return await self.client.send_audio(M.chat_id, path, caption=f"Title: {title}\nDuration: {length}")
+                try:
+                    title, path, length = YouTubeDownloader.audio_dl(
+                        url=contex[2][keys[0]])
+                    await self.client.send_audio(M.chat_id, path, caption=f"Title: {title}\nDuration: {length}")
+                    return YouTubeDownloader.delete()
+                except Exception as e:
+                    return await self.client.send_message(M.chat_id, "Something went wrong !")
 
         keybord = [{
             "text": "YouTube video 📼",
