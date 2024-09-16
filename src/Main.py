@@ -37,6 +37,6 @@ async def on_callback(client: SuperClient, callback: CallbackQuery):
 
 @Bot.on_message(filters.new_chat_members)
 async def new_member(client: SuperClient, message: Message):
-    await eventInstance.new_member(client, message)
+    await eventInstance.captcha(client, message)
 
 Bot.run()
