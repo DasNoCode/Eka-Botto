@@ -13,7 +13,7 @@ name = config("NAME", default=None)
 api_id = config("APP_ID", default=None, cast=int)
 api_hash = config("API_HASH", default=None)
 bot_token = config("BOT_TOKEN", default=None)
-prefix = bot_token = config("PREFIX", default=None)
+prefix = config("PREFIX", default=None)
 
 Bot = SuperClient(name=name, api_id=api_id, api_hash=api_hash,
                   bot_token=bot_token, prefix=prefix)
@@ -37,7 +37,6 @@ async def on_callback(client: SuperClient, callback: CallbackQuery):
 
 @Bot.on_message(filters.service)
 async def new_member(client: SuperClient, message: Message):
-    #print(message.left_chat_member.id)
     await eventInstance.handler(message)
 
 Bot.run()

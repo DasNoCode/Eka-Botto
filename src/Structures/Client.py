@@ -4,7 +4,11 @@ from pyrogram import raw, utils, enums, types
 from Helpers.Utils import Utils
 import hashlib
 from datetime import datetime
-from typing import Union, List, Optional
+from typing import Union, BinaryIO, List, Optional, Callable
+import os
+import re
+from pyrogram.errors import FilePartMissing
+from pyrogram.file_id import FileType
 
 
 class SuperClient(Client):
@@ -101,3 +105,108 @@ class SuperClient(Client):
                     is_scheduled=isinstance(
                         i, raw.types.UpdateNewScheduledMessage)
                 )
+            
+    async def send_photo(
+        self: "pyrogram.Client",
+        chat_id: Union[int, str],
+        photo: Union[str, BinaryIO],
+        caption: str = "",
+        parse_mode: Optional["enums.ParseMode"] = None,
+        caption_entities: List["types.MessageEntity"] = None,
+        entities: List["types.MessageEntity"] = None,
+        has_spoiler: bool = None,
+        ttl_seconds: int = None,
+        disable_notification: bool = None,
+        reply_to_message_id: int = None,
+        schedule_date: datetime = None,
+        protect_content: bool = None,
+        buttons=None,
+        progress: Callable = None,
+        progress_args: tuple = ()
+    ) -> Optional["types.Message"]:
+        file = None
+
+        message, entities = (await utils.parse_text_entities(self, caption, parse_mode, entities)).values()
+
+        reply_markup = None
+
+        if buttons:
+            for button in buttons:
+                original_data = button['callback_data']
+                hash_object = hashlib.sha256(original_data.encode())
+                hash_key = hash_object.hexdigest()[:10]
+                self.callback_data_map[hash_key] = original_data
+                button['callback_data'] = hash_key
+
+            reply_markup = types.InlineKeyboardMarkup([[types.InlineKeyboardButton(
+                button['text'], callback_data=button['callback_data'])] for button in buttons])
+
+        r = await self.invoke(
+            raw.functions.messages.SendMessage(
+                peer=await self.resolve_peer(chat_id),
+                silent=disable_notification or None,
+                reply_to_msg_id=reply_to_message_id,
+                random_id=self.rnd_id(),
+                schedule_date=utils.datetime_to_timestamp(schedule_date),
+                reply_markup=await reply_markup.write(self) if reply_markup else None,
+                message=message,
+                entities=entities,
+                noforwards=protect_content
+            )
+        )
+
+        try:
+            if isinstance(photo, str):
+                if os.path.isfile(photo):
+                    file = await self.save_file(photo, progress=progress, progress_args=progress_args)
+                    media = raw.types.InputMediaUploadedPhoto(
+                        file=file,
+                        ttl_seconds=ttl_seconds,
+                        spoiler=has_spoiler,
+                    )
+                elif re.match("^https?://", photo):
+                    media = raw.types.InputMediaPhotoExternal(
+                        url=photo,
+                        ttl_seconds=ttl_seconds,
+                        spoiler=has_spoiler
+                    )
+                else:
+                    media = utils.get_input_media_from_file_id(photo, FileType.PHOTO, ttl_seconds=ttl_seconds)
+            else:
+                file = await self.save_file(photo, progress=progress, progress_args=progress_args)
+                media = raw.types.InputMediaUploadedPhoto(
+                    file=file,
+                    ttl_seconds=ttl_seconds,
+                    spoiler=has_spoiler
+                )
+
+            while True:
+                try:
+                    r = await self.invoke(
+                        raw.functions.messages.SendMedia(
+                            peer=await self.resolve_peer(chat_id),
+                            media=media,
+                            silent=disable_notification or None,
+                            reply_to_msg_id=reply_to_message_id,
+                            random_id=self.rnd_id(),
+                            schedule_date=utils.datetime_to_timestamp(schedule_date),
+                            noforwards=protect_content,
+                            reply_markup=await reply_markup.write(self) if reply_markup else None,
+                            **await utils.parse_text_entities(self, caption, parse_mode, caption_entities)
+                        )
+                    )
+                except FilePartMissing as e:
+                    await self.save_file(photo, file_id=file.id, file_part=e.value)
+                else:
+                    for i in r.updates:
+                        if isinstance(i, (raw.types.UpdateNewMessage,
+                                          raw.types.UpdateNewChannelMessage,
+                                          raw.types.UpdateNewScheduledMessage)):
+                            return await types.Message._parse(
+                                self, i.message,
+                                {i.id: i for i in r.users},
+                                {i.id: i for i in r.chats},
+                                is_scheduled=isinstance(i, raw.types.UpdateNewScheduledMessage)
+                            )
+        except pyrogram.StopTransmission:
+            return None

@@ -5,13 +5,14 @@ from Structures.Client import SuperClient
 from Structures.Message import Message
 
 
+
 class MessageHandler:
 
     commands = {}
 
     def __init__(self, client: SuperClient):
         self.__client = client
-
+        
     async def handler(self, M: Message):
         contex = self.parse_args(M.message)
         isCommand = M.message.startswith(self.__client.prifix)

@@ -14,10 +14,10 @@ class Message:
 
         if self.is_callback:
             self.__m = message_or_callback.message
+            self.message_id = message_or_callback.id
             self.message = message_or_callback.data
-            user_id = message_or_callback.from_user.id
             self.sender = JsonObject({
-                "user_id": user_id,
+                "user_id": message_or_callback.from_user.id,
                 "user_name": message_or_callback.from_user.username
             })
         else:

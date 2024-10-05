@@ -1,46 +1,57 @@
 from Structures.Client import SuperClient
-
+from pyrogram.types import ChatPermissions
 
 class EventHandler:
+
+
     def __init__(self, client: SuperClient):
         self.__client = client
 
+
     async def handler(self, message):
         self.message = message
-        self.user_id = self.message.from_user.id
-        self.username = self.message.from_user.username
+
         event = True
-        if event:  # add mongo
-            if str(self.message.service).split(".")[-1] == "NEW_CHAT_MEMBERS":
-                members = self.message.new_chat_members
-                for member in members:
-                    self.member = member
-                    self.member_user_id = self.member.id
-                    self.member_username = self.member.username
-                captcha = True
-                if captcha:  # add mongo
-                    keybord = [
-                        {"text": "Captcha", "callback_data": f"/captcha --type=captcha"}
-                    ]
-                    await self.__client.send_message(
-                        self.message.chat.id,
-                        f"@{self.member_username} has joined the Chat !\nSolve the captcha ->",
-                        buttons=keybord,
-                    )
-                else:
-                    await self.__client.send_message(
-                        self.message.chat.id,
-                        f"@{self.member_username} has joined the Chat !",
-                    )
-            elif str(self.message.service).split(".")[-1] == "LEFT_CHAT_MEMBERS":
-                member_username = self.message.left_chat_member.username
-                await self.__client.send_message(
-                    self.message.chat.id, f"@{member_username} has left the Chat."
+        if event != True: # add mongo
+            return  
+        
+        if str(self.message.service).split(".")[-1] == "NEW_CHAT_MEMBERS":
+            members = self.message.new_chat_members
+            for member in members:
+                self.member = member
+            captcha = True
+            if captcha:  # add mongo
+                await self.__client.restrict_chat_member(
+                    self.message.chat.id,
+                    self.member.id,
+                    ChatPermissions(
+                        can_send_messages=False
+                    ),
                 )
-            elif str(self.message.service).split(".")[-1] == "PINNED_MESSAGE":
+                keybord = [
+                    {"text": "Captcha", "callback_data": f"/captcha --type=captcha --user_id={self.member.id}"}
+                ]
                 await self.__client.send_message(
                     self.message.chat.id,
-                    f"A new message has been pinned by @{self.username}.\nCheck now !",
+                    f"__@{self.member.username} has joined the Chat !\nSolve the captcha__",
+                    buttons=keybord,
                 )
-        else:
-            return
+            else:
+                await self.__client.send_message(
+                    self.message.chat.id,
+                    f"__@{self.member.username} has joined the Chat !__",
+                )
+        elif str(self.message.service).split(".")[-1] == "LEFT_CHAT_MEMBERS":
+            await self.__client.send_message(
+                self.message.chat.id, f"__@{self.message.left_chat_member.username} has left the Chat.__"
+            )
+        elif str(self.message.service).split(".")[-1] == "PINNED_MESSAGE":
+            await self.__client.send_message(
+                self.message.chat.id,
+                f"__A new message has been pinned by @{self.message.from_user.username}.\nCheck now !__",
+            )  
+
+
+
+
+
