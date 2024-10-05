@@ -12,16 +12,22 @@ from pyrogram.file_id import FileType
 
 
 class SuperClient(Client):
-    def __init__(self, name: str, api_id: int, api_hash: str, bot_token: str, prefix: str):
-        super().__init__(name=name, api_id=api_id, api_hash=api_hash,
-                         bot_token=bot_token)
+    def __init__(
+        self, name: str, api_id: int, api_hash: str, bot_token: str, prefix: str
+    ):
+        super().__init__(
+            name=name, api_id=api_id, api_hash=api_hash, bot_token=bot_token
+        )
         self.prifix = prefix
         self.callback_data_map = {}
         self.utils = Utils()
 
     async def admincheck(self, message):
         isadmin = await self.get_chat_member(message.chat.id, message.from_user.id)
-        return isadmin.status in [enums.ChatMemberStatus.OWNER, enums.ChatMemberStatus.ADMINISTRATOR]
+        return isadmin.status in [
+            enums.ChatMemberStatus.OWNER,
+            enums.ChatMemberStatus.ADMINISTRATOR,
+        ]
 
     async def send_message(
         self: "pyrogram.Client",
@@ -30,27 +36,38 @@ class SuperClient(Client):
         buttons=None,
         parse_mode: Optional["enums.ParseMode"] = None,
         entities: List["types.MessageEntity"] = None,
+        timer=None,
         disable_web_page_preview: bool = None,
         disable_notification: bool = None,
         reply_to_message_id: int = None,
         schedule_date: datetime = None,
-        protect_content: bool = None
+        protect_content: bool = None,
     ):
 
-        message, entities = (await utils.parse_text_entities(self, text, parse_mode, entities)).values()
+        message, entities = (
+            await utils.parse_text_entities(self, text, parse_mode, entities)
+        ).values()
 
         reply_markup = None
 
         if buttons:
             for button in buttons:
-                original_data = button['callback_data']
+                original_data = button["callback_data"]
                 hash_object = hashlib.sha256(original_data.encode())
                 hash_key = hash_object.hexdigest()[:10]
                 self.callback_data_map[hash_key] = original_data
-                button['callback_data'] = hash_key
+                button["callback_data"] = hash_key
 
-            reply_markup = types.InlineKeyboardMarkup([[types.InlineKeyboardButton(
-                button['text'], callback_data=button['callback_data'])] for button in buttons])
+            reply_markup = types.InlineKeyboardMarkup(
+                [
+                    [
+                        types.InlineKeyboardButton(
+                            button["text"], callback_data=button["callback_data"]
+                        )
+                    ]
+                    for button in buttons
+                ]
+            )
 
         r = await self.invoke(
             raw.functions.messages.SendMessage(
@@ -63,7 +80,7 @@ class SuperClient(Client):
                 reply_markup=await reply_markup.write(self) if reply_markup else None,
                 message=message,
                 entities=entities,
-                noforwards=protect_content
+                noforwards=protect_content,
             )
         )
 
@@ -78,34 +95,39 @@ class SuperClient(Client):
 
             return types.Message(
                 id=r.id,
-                chat=types.Chat(
-                    id=peer_id,
-                    type=enums.ChatType.PRIVATE,
-                    client=self
-                ),
+                chat=types.Chat(id=peer_id, type=enums.ChatType.PRIVATE, client=self),
                 text=message,
                 date=utils.timestamp_to_datetime(r.date),
                 outgoing=r.out,
                 reply_markup=reply_markup,
-                entities=[
-                    types.MessageEntity._parse(None, entity, {})
-                    for entity in entities
-                ] if entities else None,
-                client=self
+                entities=(
+                    [
+                        types.MessageEntity._parse(None, entity, {})
+                        for entity in entities
+                    ]
+                    if entities
+                    else None
+                ),
+                client=self,
             )
 
         for i in r.updates:
-            if isinstance(i, (raw.types.UpdateNewMessage,
-                              raw.types.UpdateNewChannelMessage,
-                              raw.types.UpdateNewScheduledMessage)):
+            if isinstance(
+                i,
+                (
+                    raw.types.UpdateNewMessage,
+                    raw.types.UpdateNewChannelMessage,
+                    raw.types.UpdateNewScheduledMessage,
+                ),
+            ):
                 return await types.Message._parse(
-                    self, i.message,
+                    self,
+                    i.message,
                     {i.id: i for i in r.users},
                     {i.id: i for i in r.chats},
-                    is_scheduled=isinstance(
-                        i, raw.types.UpdateNewScheduledMessage)
+                    is_scheduled=isinstance(i, raw.types.UpdateNewScheduledMessage),
                 )
-            
+
     async def send_photo(
         self: "pyrogram.Client",
         chat_id: Union[int, str],
@@ -113,7 +135,6 @@ class SuperClient(Client):
         caption: str = "",
         parse_mode: Optional["enums.ParseMode"] = None,
         caption_entities: List["types.MessageEntity"] = None,
-        entities: List["types.MessageEntity"] = None,
         has_spoiler: bool = None,
         ttl_seconds: int = None,
         disable_notification: bool = None,
@@ -122,43 +143,42 @@ class SuperClient(Client):
         protect_content: bool = None,
         buttons=None,
         progress: Callable = None,
-        progress_args: tuple = ()
+        progress_args: tuple = (),
     ) -> Optional["types.Message"]:
         file = None
 
-        message, entities = (await utils.parse_text_entities(self, caption, parse_mode, entities)).values()
-
+        # Initialize reply_markup to None to avoid referencing before assignment
         reply_markup = None
 
+        # Prepare the reply markup if buttons are provided
         if buttons:
+            # Process each button, assign unique callback_data, and create reply_markup
             for button in buttons:
-                original_data = button['callback_data']
+                original_data = button["callback_data"]
                 hash_object = hashlib.sha256(original_data.encode())
                 hash_key = hash_object.hexdigest()[:10]
                 self.callback_data_map[hash_key] = original_data
-                button['callback_data'] = hash_key
+                button["callback_data"] = hash_key
 
-            reply_markup = types.InlineKeyboardMarkup([[types.InlineKeyboardButton(
-                button['text'], callback_data=button['callback_data'])] for button in buttons])
-
-        r = await self.invoke(
-            raw.functions.messages.SendMessage(
-                peer=await self.resolve_peer(chat_id),
-                silent=disable_notification or None,
-                reply_to_msg_id=reply_to_message_id,
-                random_id=self.rnd_id(),
-                schedule_date=utils.datetime_to_timestamp(schedule_date),
-                reply_markup=await reply_markup.write(self) if reply_markup else None,
-                message=message,
-                entities=entities,
-                noforwards=protect_content
+            # Create InlineKeyboardMarkup for the buttons
+            reply_markup = types.InlineKeyboardMarkup(
+                [
+                    [
+                        types.InlineKeyboardButton(
+                            button["text"], callback_data=button["callback_data"]
+                        )
+                    ]
+                    for button in buttons
+                ]
             )
-        )
 
         try:
+            # Determine the appropriate media type to send
             if isinstance(photo, str):
                 if os.path.isfile(photo):
-                    file = await self.save_file(photo, progress=progress, progress_args=progress_args)
+                    file = await self.save_file(
+                        photo, progress=progress, progress_args=progress_args
+                    )
                     media = raw.types.InputMediaUploadedPhoto(
                         file=file,
                         ttl_seconds=ttl_seconds,
@@ -166,20 +186,21 @@ class SuperClient(Client):
                     )
                 elif re.match("^https?://", photo):
                     media = raw.types.InputMediaPhotoExternal(
-                        url=photo,
-                        ttl_seconds=ttl_seconds,
-                        spoiler=has_spoiler
+                        url=photo, ttl_seconds=ttl_seconds, spoiler=has_spoiler
                     )
                 else:
-                    media = utils.get_input_media_from_file_id(photo, FileType.PHOTO, ttl_seconds=ttl_seconds)
+                    media = utils.get_input_media_from_file_id(
+                        photo, FileType.PHOTO, ttl_seconds=ttl_seconds
+                    )
             else:
-                file = await self.save_file(photo, progress=progress, progress_args=progress_args)
+                file = await self.save_file(
+                    photo, progress=progress, progress_args=progress_args
+                )
                 media = raw.types.InputMediaUploadedPhoto(
-                    file=file,
-                    ttl_seconds=ttl_seconds,
-                    spoiler=has_spoiler
+                    file=file, ttl_seconds=ttl_seconds, spoiler=has_spoiler
                 )
 
+            # Send the media with the prepared reply_markup
             while True:
                 try:
                     r = await self.invoke(
@@ -191,22 +212,34 @@ class SuperClient(Client):
                             random_id=self.rnd_id(),
                             schedule_date=utils.datetime_to_timestamp(schedule_date),
                             noforwards=protect_content,
-                            reply_markup=await reply_markup.write(self) if reply_markup else None,
-                            **await utils.parse_text_entities(self, caption, parse_mode, caption_entities)
+                            reply_markup=(
+                                await reply_markup.write(self) if reply_markup else None
+                            ),
+                            **await utils.parse_text_entities(
+                                self, caption, parse_mode, caption_entities
+                            )
                         )
                     )
                 except FilePartMissing as e:
                     await self.save_file(photo, file_id=file.id, file_part=e.value)
                 else:
                     for i in r.updates:
-                        if isinstance(i, (raw.types.UpdateNewMessage,
-                                          raw.types.UpdateNewChannelMessage,
-                                          raw.types.UpdateNewScheduledMessage)):
+                        if isinstance(
+                            i,
+                            (
+                                raw.types.UpdateNewMessage,
+                                raw.types.UpdateNewChannelMessage,
+                                raw.types.UpdateNewScheduledMessage,
+                            ),
+                        ):
                             return await types.Message._parse(
-                                self, i.message,
+                                self,
+                                i.message,
                                 {i.id: i for i in r.users},
                                 {i.id: i for i in r.chats},
-                                is_scheduled=isinstance(i, raw.types.UpdateNewScheduledMessage)
+                                is_scheduled=isinstance(
+                                    i, raw.types.UpdateNewScheduledMessage
+                                ),
                             )
         except pyrogram.StopTransmission:
             return None

@@ -26,8 +26,8 @@ class YouTubeDownloader:
         """
         function_patterns = [
             r'a\.[a-zA-Z]\s*&&\s*\([a-z]\s*=\s*a\.get\("n"\)\)\s*&&\s*'
-            r'\([a-z]\s*=\s*([a-zA-Z0-9$]+)(\[\d+\])?\([a-z]\)',
-            r'\([a-z]\s*=\s*([a-zA-Z0-9$]+)(\[\d+\])\([a-z]\)',
+            r"\([a-z]\s*=\s*([a-zA-Z0-9$]+)(\[\d+\])?\([a-z]\)",
+            r"\([a-z]\s*=\s*([a-zA-Z0-9$]+)(\[\d+\])\([a-z]\)",
         ]
 
         for pattern in function_patterns:
@@ -39,7 +39,7 @@ class YouTubeDownloader:
                 if idx:
                     idx = int(idx.strip("[]"))
                     array_match = re.search(
-                        rf'var {re.escape(func_name)}\s*=\s*(\[.*?\]);', js
+                        rf"var {re.escape(func_name)}\s*=\s*(\[.*?\]);", js
                     )
                     if array_match:
                         array = array_match.group(1).strip("[]").split(",")
@@ -48,7 +48,8 @@ class YouTubeDownloader:
                     return func_name
 
         raise RegexMatchError(  # type: ignore
-            "get_throttling_function_name", "multiple patterns")
+            "get_throttling_function_name", "multiple patterns"
+        )
 
     def audio_dl(url: str):
         try:
@@ -75,13 +76,8 @@ class YouTubeDownloader:
             return None, None, None
 
     def delete():
-        media_extensions = {'.mp3', '.wav', '.mp4', '.avi',
-                            '.mov', '.mkv', '.flac', '.wmv', '.m4a'}
-
-        for filename in os.listdir("downloads"):
-            if filename.lower().endswith(media_extensions):
-                try:
-                    os.remove(os.path.join("downloads", filename))
-                    print(f"Deleted: {filename}")
-                except Exception as e:
-                    print(f"Error deleting {filename}: {e}")
+        [
+            os.remove(os.path.join("downloads", f))
+            for f in os.listdir("downloads")
+            if os.path.isfile(os.path.join("downloads", f))
+        ]
