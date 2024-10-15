@@ -1,6 +1,7 @@
 from Structures.Client import SuperClient
 from pyrogram.types import ChatPermissions
 
+chat_ids = { }
 
 class EventHandler:
 
@@ -31,12 +32,13 @@ class EventHandler:
                         "callback_data": f"/captcha --type=captcha --user_id={self.member.id}",
                     }
                 ]
-                await self.__client.send_message(
+                msg = await self.__client.send_message(
                     self.message.chat.id,
                     f"__@{self.member.username} has joined the Chat !\nSolve the captcha__",
                     buttons=keybord,
                 )
 
+                chat_ids[self.member.id] = msg.id
             else:
                 await self.__client.send_message(
                     self.message.chat.id,
@@ -50,5 +52,6 @@ class EventHandler:
         elif str(self.message.service).split(".")[-1] == "PINNED_MESSAGE":
             await self.__client.send_message(
                 self.message.chat.id,
-                f"__A new message has been pinned by @{self.message.from_user.username}.\nCheck now !__",
+                f"__A new message has been pinned by @{
+                    self.message.from_user.username}.\nCheck now !__",
             )

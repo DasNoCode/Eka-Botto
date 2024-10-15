@@ -14,22 +14,24 @@ class Message:
 
         if self.is_callback:
             self.__m = message_or_callback.message
-            self.message_id = message_or_callback.id
+            self.message_id = self.__m.id
             self.message = message_or_callback.data
+            self.query_id = message_or_callback.id
             self.sender = JsonObject({
                 "user_id": message_or_callback.from_user.id,
-                "user_name": message_or_callback.from_user.username
+                "user_name": message_or_callback.from_user.username,
             })
         else:
             self.__m = message_or_callback
             self.message = self.__m.text
-            user_id = self.__m.from_user.id
             self.sender = JsonObject({
-                "user_id": user_id,
-                "user_name": self.__m.from_user.username
+                "user_id": self.__m.from_user.id,
+                "user_name": self.__m.from_user.username,
+                "user_profile": self.__m.from_user.photo.small_file_id
             })
 
         self.chat_info = self.__m.chat
+        self.reply_to_message = self.__m.reply_to_message
         self.chat_type = "SUPERGROUP" if str(self.__m.chat.type)[
             len("ChatType."):].strip() else "PRIVATE"
         self.chat_id = self.chat_info.id
@@ -59,7 +61,8 @@ class Message:
             reply_user = self.__m.reply_to_message.from_user
             self.mentioned.append({
                 "user_id": reply_user.id,
-                "user_name": reply_user.username
+                "user_name": reply_user.username,
+                "user_profile": reply_user.from_user.photo.small_file_id
             })
 
         return self
