@@ -1,13 +1,14 @@
+import asyncio
+import base64
 import os
 import random
-import base64
+import re
+import shutil
+import tempfile
+
 import requests
 from bs4 import BeautifulSoup
 from moviepy.editor import VideoFileClip
-import tempfile
-import shutil
-import re
-import asyncio
 
 
 class Utils:
@@ -42,29 +43,33 @@ class Utils:
 
     @staticmethod
     def buffer_to_base64(buffer):
-        return base64.b64encode(buffer).decode('utf-8')
+        return base64.b64encode(buffer).decode("utf-8")
 
     @staticmethod
     def webp_to_mp4(webp):
         def request(form, file=None):
-            url = f'https://ezgif.com/webp-to-mp4/{file}' if file else 'https://ezgif.com/webp-to-mp4'
+            url = (
+                f"https://ezgif.com/webp-to-mp4/{file}"
+                if file
+                else "https://ezgif.com/webp-to-mp4"
+            )
             response = requests.post(url, files=form)
-            return BeautifulSoup(response.text, 'html.parser')
+            return BeautifulSoup(response.text, "html.parser")
 
-        files = {'new-image': ('bold.webp', webp, 'image/webp')}
+        files = {"new-image": ("bold.webp", webp, "image/webp")}
         soup1 = request(files)
-        file = soup1.find('input', {'name': 'file'})['value']
-        files = {'file': (file, 'image/webp'),
-                 'convert': 'Convert WebP to MP4!'}
+        file = soup1.find("input", {"name": "file"})["value"]
+        files = {"file": (file, "image/webp"), "convert": "Convert WebP to MP4!"}
         soup2 = request(files, file)
-        video_url = 'https:' + \
-            soup2.find('div', {'id': 'output'}).find(
-                'video').find('source')['src']
+        video_url = (
+            "https:"
+            + soup2.find("div", {"id": "output"}).find("video").find("source")["src"]
+        )
         return requests.get(video_url).content
 
     @staticmethod
     def extract_numbers(content):
-        number_pattern = re.compile(r'\b\d+\b')
+        number_pattern = re.compile(r"\b\d+\b")
         numbers = number_pattern.findall(content)
         return numbers
 
@@ -86,23 +91,23 @@ class Utils:
 
     @staticmethod
     def get_urls(text):
-        url_pattern = re.compile(r'https?://\S+')
+        url_pattern = re.compile(r"https?://\S+")
         urls = url_pattern.findall(text)
         return urls
 
     @staticmethod
     def gif_to_mp4(gif):
         temp_dir = tempfile.mkdtemp()
-        gif_path = os.path.join(temp_dir, 'temp.gif')
-        mp4_path = os.path.join(temp_dir, 'temp.mp4')
+        gif_path = os.path.join(temp_dir, "temp.gif")
+        mp4_path = os.path.join(temp_dir, "temp.mp4")
 
-        with open(gif_path, 'wb') as f:
+        with open(gif_path, "wb") as f:
             f.write(gif)
 
         clip = VideoFileClip(gif_path)
-        clip.write_videofile(mp4_path, codec='libx264')
+        clip.write_videofile(mp4_path, codec="libx264")
 
-        with open(mp4_path, 'rb') as f:
+        with open(mp4_path, "rb") as f:
             buffer = f.read()
 
         shutil.rmtree(temp_dir)

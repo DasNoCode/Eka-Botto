@@ -1,12 +1,15 @@
-from Structures.Command.BaseCommand import BaseCommand
-from pyrogram.types import ChatPermissions
-from Structures.Message import Message
-from captcha.image import ImageCaptcha
-from Handler.EventHandler import chat_ids
+import asyncio
+import os
 import random
 import string
-import os
-import asyncio
+
+from captcha.image import ImageCaptcha
+from pyrogram.types import ChatPermissions
+
+from Handler.EventHandler import CHAT_IDS
+from Structures.Command.BaseCommand import BaseCommand
+from Structures.Message import Message
+
 
 class Command(BaseCommand):
     def __init__(self, client, handler):
@@ -26,7 +29,7 @@ class Command(BaseCommand):
     async def exec(self, M: Message, context):
         if not M.is_callback:
             return
-        
+
         user_id = int(context[2].get("user_id"))
         if user_id != M.sender.user_id:
             return await self.client.answer_callback_query(
@@ -40,25 +43,23 @@ class Command(BaseCommand):
             return await self.process_captcha_response(M, context)
 
         # Generate a captcha and send it to the user
-        await self.send_captcha(M.chat_id, context, user_id)
+        await self.send_captcha(M.chat_id, user_id)
 
     def generate_captcha(self):
         """Generates a random captcha code and its options"""
-        random_text = lambda: "".join(random.choices(string.ascii_letters + string.digits, k=5))
+        random_text = lambda: "".join(
+            random.choices(string.ascii_letters + string.digits, k=5)
+        )
         codes = {f"code{i}": random_text() for i in range(1, 4)}
         self.captcha_code = random.choice(list(codes.values()))
         return codes
 
-    async def send_captcha(self, chat_id, context, user_id):
-        """Creates a captcha image, sends it, and starts the timer"""
-
-        keys = list(context[2].keys())
+    async def send_captcha(self, chat_id, user_id):
         codes = self.generate_captcha()
         captcha_image = ImageCaptcha(fonts=["src/CaptchaFonts/Roboto-Thin.ttf"])
         captcha_image.write(self.captcha_code, "Captcha.png")
 
-
-        await self.delete_message(chat_id, chat_ids[user_id])
+        await self.delete_message(chat_id, CHAT_IDS[user_id])
 
         # Send new captcha message
         message = await self.client.send_photo(
@@ -66,7 +67,10 @@ class Command(BaseCommand):
             "Captcha.png",
             caption="__Here is your Captcha! Solve it within 1 minute.__",
             buttons=[
-                {"text": code, "callback_data": f"/captcha --code={code} --user_id={user_id}"}
+                {
+                    "text": code,
+                    "callback_data": f"/captcha --code={code} --user_id={user_id}",
+                }
                 for code in codes.values()
             ],
         )
@@ -82,10 +86,7 @@ class Command(BaseCommand):
             await self.client.restrict_chat_member(
                 M.chat_id,
                 M.sender.user_id,
-                ChatPermissions(
-                    can_send_messages=True, 
-                    can_send_media_messages=True
-                ),
+                ChatPermissions(can_send_messages=True, can_send_media_messages=True),
             )
         else:
             # Incorrect answer - ban user
@@ -103,6 +104,8 @@ class Command(BaseCommand):
         """Deletes the captcha message if it exists"""
         if message_id:
             try:
-                await self.client.delete_messages(chat_id=chat_id, message_ids=message_id)
+                await self.client.delete_messages(
+                    chat_id=chat_id, message_ids=message_id
+                )
             except Exception as e:
                 print(f"Failed to delete captcha message: {e}")

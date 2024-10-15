@@ -1,8 +1,8 @@
-from pytube import YouTube
-from pytube.innertube import _default_clients
-from pytube import cipher
-import re
 import os
+import re
+
+from pytube import YouTube, cipher
+from pytube.innertube import _default_clients
 
 _default_clients["ANDROID"]["context"]["client"]["clientVersion"] = "19.08.35"
 _default_clients["IOS"]["context"]["client"]["clientVersion"] = "19.08.35"

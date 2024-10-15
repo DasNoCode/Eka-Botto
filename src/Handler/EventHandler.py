@@ -1,7 +1,9 @@
-from Structures.Client import SuperClient
 from pyrogram.types import ChatPermissions
 
-chat_ids = { }
+from Structures.Client import SuperClient
+
+CHAT_IDS = {}
+
 
 class EventHandler:
 
@@ -38,7 +40,7 @@ class EventHandler:
                     buttons=keybord,
                 )
 
-                chat_ids[self.member.id] = msg.id
+                CHAT_IDS[self.member.id] = msg.id
             else:
                 await self.__client.send_message(
                     self.message.chat.id,

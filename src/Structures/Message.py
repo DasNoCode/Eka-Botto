@@ -1,5 +1,5 @@
-from Structures.Client import SuperClient
 from Helpers.JsonObject import JsonObject
+from Structures.Client import SuperClient
 
 
 class Message:
@@ -17,26 +17,34 @@ class Message:
             self.message_id = self.__m.id
             self.message = message_or_callback.data
             self.query_id = message_or_callback.id
-            self.sender = JsonObject({
-                "user_id": message_or_callback.from_user.id,
-                "user_name": message_or_callback.from_user.username,
-            })
+            self.sender = JsonObject(
+                {
+                    "user_id": message_or_callback.from_user.id,
+                    "user_name": message_or_callback.from_user.username,
+                }
+            )
         else:
             self.__m = message_or_callback
             self.message = self.__m.text
-            self.sender = JsonObject({
-                "user_id": self.__m.from_user.id,
-                "user_name": self.__m.from_user.username,
-                "user_profile": self.__m.from_user.photo.small_file_id
-            })
+            self.sender = JsonObject(
+                {
+                    "user_id": self.__m.from_user.id,
+                    "user_name": self.__m.from_user.username,
+                    "user_profile_id": getattr(
+                        self.__m.from_user.photo, "small_file_id", None
+                    ),
+                }
+            )
 
         self.chat_info = self.__m.chat
         self.reply_to_message = self.__m.reply_to_message
-        self.chat_type = "SUPERGROUP" if str(self.__m.chat.type)[
-            len("ChatType."):].strip() else "PRIVATE"
+        self.chat_type = (
+            "SUPERGROUP"
+            if str(self.__m.chat.type)[len("ChatType.") :].strip()
+            else "PRIVATE"
+        )
         self.chat_id = self.chat_info.id
-        self.msg_type = str(self.__m.chat.type)[
-            len("MessageMediaType."):].strip()
+        self.msg_type = str(self.__m.chat.type)[len("MessageMediaType.") :].strip()
 
         self.mentioned = []
 
@@ -50,20 +58,26 @@ class Message:
             for entity in self.__m.entities:
                 if entity.type == "MENTION":
                     mentions = [
-                        mention for mention in self.__m.text.split() if mention.startswith('@')]
+                        mention
+                        for mention in self.__m.text.split()
+                        if mention.startswith("@")
+                    ]
                     for mention in mentions:
                         user = await self.__client.get_users(mention)
-                        self.mentioned.append({
-                            "user_id": user.id,
-                            "user_name": user.username
-                        })
+                        self.mentioned.append(
+                            {"user_id": user.id, "user_name": user.username}
+                        )
         elif self.__m.reply_to_message:
             reply_user = self.__m.reply_to_message.from_user
-            self.mentioned.append({
-                "user_id": reply_user.id,
-                "user_name": reply_user.username,
-                "user_profile": reply_user.from_user.photo.small_file_id
-            })
+            self.mentioned.append(
+                {
+                    "user_id": reply_user.id,
+                    "user_name": reply_user.username,
+                    "user_profile_id": getattr(
+                        reply_user.from_user.photo.small_file_id, "small_file_id", None
+                    ),
+                }
+            )
 
         return self
 

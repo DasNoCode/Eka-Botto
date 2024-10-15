@@ -1,18 +1,22 @@
-import tracemoepy
-from Structures.Command.BaseCommand import BaseCommand
 import os
+
+import tracemoepy
+
+from Structures.Command.BaseCommand import BaseCommand
 
 
 class Command(BaseCommand):
     def __init__(self, client, handler):
-        super().__init__(client, handler, {
-            'command': 'whatanime',
-            'category': 'core',
-            'description': {
-                'content': 'Identify the anime from a provided image.'
+        super().__init__(
+            client,
+            handler,
+            {
+                "command": "whatanime",
+                "category": "core",
+                "description": {"content": "Identify the anime from a provided image."},
+                "exp": 1,
             },
-            'exp': 1
-        })
+        )
         self.tracemoe = tracemoepy.tracemoe.TraceMoe()
 
     async def exec(self, message, context):

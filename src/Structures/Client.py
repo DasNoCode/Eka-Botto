@@ -1,14 +1,17 @@
-import pyrogram
-from pyromod import Client
-from pyrogram import raw, utils, enums, types
-from Helpers.Utils import Utils
 import hashlib
-from datetime import datetime
-from typing import Union, BinaryIO, List, Optional, Callable
 import os
 import re
+from datetime import datetime
+from typing import BinaryIO, Callable, List, Optional, Union
+
+import pyrogram
+from pyrogram import enums, raw, types, utils
 from pyrogram.errors import FilePartMissing
 from pyrogram.file_id import FileType
+from pyromod import Client
+
+from Helpers.Logger import get_logger
+from Helpers.Utils import Utils
 
 
 class SuperClient(Client):
@@ -19,6 +22,7 @@ class SuperClient(Client):
             name=name, api_id=api_id, api_hash=api_hash, bot_token=bot_token
         )
         self.prifix = prefix
+        self.log = get_logger()
         self.callback_data_map = {}
         self.utils = Utils()
 
@@ -36,7 +40,6 @@ class SuperClient(Client):
         buttons=None,
         parse_mode: Optional["enums.ParseMode"] = None,
         entities: List["types.MessageEntity"] = None,
-        timer=None,
         disable_web_page_preview: bool = None,
         disable_notification: bool = None,
         reply_to_message_id: int = None,

@@ -1,5 +1,5 @@
-from Structures.Client import SuperClient
 from Helpers.JsonObject import JsonObject
+from Structures.Client import SuperClient
 
 
 class BaseCommand:
@@ -9,5 +9,4 @@ class BaseCommand:
         self.config = JsonObject(config)
 
     async def exec(self, msg, arg):
-        raise NotImplementedError(
-            "Exec function must be declared in subclasses")
+        raise NotImplementedError("Exec function must be declared in subclasses")
