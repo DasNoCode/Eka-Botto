@@ -3,9 +3,19 @@ import os
 import tracemoepy
 
 from Structures.Command.BaseCommand import BaseCommand
+from Structures.Message import Message
+
+# tracemoe = tracemoepy.tracemoe.TraceMoe()
+#
+# print(
+#    tracemoe.search(
+#        "/home/das/Desktop/Robotto-Bot12/Images/download.jpeg", upload_file=True
+#    )
+# )
 
 
 class Command(BaseCommand):
+
     def __init__(self, client, handler):
         super().__init__(
             client,
@@ -19,17 +29,28 @@ class Command(BaseCommand):
         )
         self.tracemoe = tracemoepy.tracemoe.TraceMoe()
 
-    async def exec(self, message, context):
-        reply = message.reply_to_message
+    async def exec(self, M: Message, contex):
 
-        if reply and reply.media:
-            path = reply.download()
-            info = self.tracemoe.search(path, upload_file=True)
-            data = f"Match: {info.result[0].anilist.title.romaji}\nSimilarity: {
-                info.result[0].similarity * 100:.2f}%"
+        if M.msg_type not in ["animation", "photo", "video"]:
+            return
+        print(M.file_id)
+        try:
+            await self.client.download_media(
+                M.file_id, file_name=f"downloads/{M.file_id}.jpg"
+            )
+        except Exception as e:
+            print(e)
+        await self.client.send_message(M.chat_id, M.msg_type)
 
-            video_path = f"{reply.from_user.id}.mp4"
-            info.result[0].save(video_path, mute=False)
+        # if M.reply_to_message:
 
-            await reply.reply_document(video_path, caption=data)
-            os.remove(video_path)
+
+#
+#    path = reply.download()
+#    info = self.tracemoe.search(path, upload_file=True)
+#    data = f"Match: {info.result[0].anilist.title.romaji}\nSimilarity: {
+#       info.result[0].similarity * 100:.2f}%"
+#    video_path = f"{reply.from_user.id}.mp4"
+#    info.result[0].save(video_path, mute=False)
+#    await reply.reply_document(video_path, caption=data)
+#    os.remove(video_path)

@@ -38,15 +38,12 @@ class Command(BaseCommand):
                 show_alert=True,
             )
 
-        # Handling the case where the user submits a captcha code
         if context[2].get("code"):
             return await self.process_captcha_response(M, context)
 
-        # Generate a captcha and send it to the user
         await self.send_captcha(M.chat_id, user_id)
 
     def generate_captcha(self):
-        """Generates a random captcha code and its options"""
         random_text = lambda: "".join(
             random.choices(string.ascii_letters + string.digits, k=5)
         )
@@ -61,7 +58,6 @@ class Command(BaseCommand):
 
         await self.delete_message(chat_id, CHAT_IDS[user_id])
 
-        # Send new captcha message
         message = await self.client.send_photo(
             chat_id,
             "Captcha.png",
@@ -80,28 +76,22 @@ class Command(BaseCommand):
         os.remove("Captcha.png")
 
     async def process_captcha_response(self, M: Message, context):
-        """Processes the user's response to the captcha"""
         if context[2].get("code") == self.captcha_code:
-            # Correct answer - grant permissions
             await self.client.restrict_chat_member(
                 M.chat_id,
                 M.sender.user_id,
                 ChatPermissions(can_send_messages=True, can_send_media_messages=True),
             )
         else:
-            # Incorrect answer - ban user
             await self.client.ban_chat_member(M.chat_id, M.sender.user_id)
 
-        # Delete the captcha message after handling the response
         await self.delete_message(M.chat_id, self.captcha_message_id)
 
     async def timer(self, chat_id):
-        """Waits for 1 minute and then deletes the captcha message if it's still there"""
         await asyncio.sleep(60)
         await self.delete_message(chat_id, self.captcha_message_id)
 
     async def delete_message(self, chat_id, message_id):
-        """Deletes the captcha message if it exists"""
         if message_id:
             try:
                 await self.client.delete_messages(

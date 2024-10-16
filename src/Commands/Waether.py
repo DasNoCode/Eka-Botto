@@ -30,4 +30,5 @@ class Command(BaseCommand):
             response = requests.get(f"https://wttr.in/{location}?mnTC0&lang=en")
             await self.client.send_message(M.chat_id, response.text)
         except Exception as e:
+            self.__client.log.error(str(e))
             await self.client.send_message(M.chat_id, f"__Error:__ {e}")

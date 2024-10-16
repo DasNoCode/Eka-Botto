@@ -24,22 +24,17 @@ class Command(BaseCommand):
         self.Rounds = None
 
     async def check_points(self, M: Message):
-
-        if self.UserPoints == self.Rounds:
-            await self.client.send_message(
-                M.chat_id, "Congratulations! You won this game!"
-            )
-            self.reset_game()
-            return True
-
-        if self.BotPoints == self.Rounds:
+        if self.UserPoints + self.BotPoints == self.Rounds:
             await self.client.send_message(
                 M.chat_id,
-                "Unfortunately, you lost this game.\n __/rps <- Try your luck again__",
+                (
+                    "Congratulations! You won this game!"
+                    if self.UserPoints >= self.BotPoints
+                    else "Unfortunately, you lost this game.\n__/rps <- Try your luck again__"
+                ),
             )
             self.reset_game()
             return True
-
         return False
 
     def reset_game(self):
@@ -93,7 +88,7 @@ class Command(BaseCommand):
         user_choice = context[2].get("data").lower()
         bot_choice = random.choice(["rock", "paper", "scissors"])
 
-        if user_choice == bot_choice:
+        if user_choice is bot_choice:
             await self.client.edit_message_text(
                 chat_id=M.chat_id,
                 message_id=M.message_id,
@@ -101,9 +96,9 @@ class Command(BaseCommand):
                 buttons=btn,
             )
         elif (
-            (user_choice == "rock" and bot_choice == "scissors")
-            or (user_choice == "paper" and bot_choice == "rock")
-            or (user_choice == "scissors" and bot_choice == "paper")
+            (user_choice is "rock" and bot_choice is "scissors")
+            or (user_choice is "paper" and bot_choice is "rock")
+            or (user_choice is "scissors" and bot_choice is "paper")
         ):
             self.UserPoints += 1
         else:

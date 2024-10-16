@@ -4,6 +4,14 @@ from Structures.Client import SuperClient
 
 class Message:
 
+    media_types_with_caption = {
+        "photo",
+        "audio",
+        "video",
+        "document",
+        "animation",
+        "video_note",
+    }
     urls = []
     numbers = []
     mentioned = []
@@ -25,7 +33,6 @@ class Message:
             )
         else:
             self.__m = message_or_callback
-            self.message = self.__m.text
             self.sender = JsonObject(
                 {
                     "user_id": self.__m.from_user.id,
@@ -35,7 +42,6 @@ class Message:
                     ),
                 }
             )
-
         self.chat_info = self.__m.chat
         self.reply_to_message = self.__m.reply_to_message
         self.chat_type = (
@@ -44,11 +50,30 @@ class Message:
             else "PRIVATE"
         )
         self.chat_id = self.chat_info.id
-        self.msg_type = str(self.__m.chat.type)[len("MessageMediaType.") :].strip()
+        self.msg_type = (
+            str(self.reply_to_message.media.name).lower()
+            if self.reply_to_message and hasattr(self.reply_to_message, "media")
+            else (
+                str(getattr(self.__m, "media", None).name).lower()
+                if getattr(self.__m, "media", None)
+                else None
+            )
+        )
+
+        if self.msg_type in self.media_types_with_caption:
+            self.message = self.__m.caption
+        else:
+            self.message = self.__m.text
+
+        if self.msg_type in ["voice", "animation", "audio", "photo", "video"]:
+            self.file_id = getattr(
+                getattr(self.__m, self.msg_type, {}), "file_id", None
+            )
 
         self.mentioned = []
 
     async def build(self):
+        print(self.__m)
         self.urls = self.__client.utils.get_urls(self.message)
         self.numbers = self.__client.utils.extract_numbers(self.message)
 
@@ -74,7 +99,7 @@ class Message:
                     "user_id": reply_user.id,
                     "user_name": reply_user.username,
                     "user_profile_id": getattr(
-                        reply_user.from_user.photo.small_file_id, "small_file_id", None
+                        reply_user.photo.small_file_id, "small_file_id", None
                     ),
                 }
             )

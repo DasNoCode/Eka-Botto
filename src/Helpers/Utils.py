@@ -69,9 +69,12 @@ class Utils:
 
     @staticmethod
     def extract_numbers(content):
-        number_pattern = re.compile(r"\b\d+\b")
-        numbers = number_pattern.findall(content)
-        return numbers
+        try:
+            number_pattern = re.compile(r"\b\d+\b")
+            numbers = number_pattern.findall(content)
+            return numbers
+        except:
+            pass
 
     @staticmethod
     def get_random_int(min, max):
@@ -91,9 +94,10 @@ class Utils:
 
     @staticmethod
     def get_urls(text):
-        url_pattern = re.compile(r"https?://\S+")
-        urls = url_pattern.findall(text)
-        return urls
+        if text:
+            url_pattern = re.compile(r"https?://\S+")
+            urls = url_pattern.findall(text)
+            return urls
 
     @staticmethod
     def gif_to_mp4(gif):

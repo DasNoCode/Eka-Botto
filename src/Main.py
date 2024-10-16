@@ -16,6 +16,7 @@ from Structures.Message import Message
 # bot_token = config("BOT_TOKEN", default=None)
 # prefix = config("PREFIX", default=None)
 
+
 Bot = SuperClient(
     name=name, api_id=api_id, api_hash=api_hash, bot_token=bot_token, prefix=prefix
 )
@@ -27,7 +28,16 @@ instance.load_commands("src/Commands")
 
 
 @Bot.on_message(
-    (filters.text | filters.reply_keyboard | filters.inline_keyboard), group=-1
+    (
+        filters.text
+        | filters.reply_keyboard
+        | filters.inline_keyboard
+        | filters.photo
+        | filters.audio
+        | filters.voice
+        | filters.animation
+    ),
+    group=-1,
 )
 async def on_message(client: SuperClient, message: Message):
     await instance.handler(await Message(client, message).build())

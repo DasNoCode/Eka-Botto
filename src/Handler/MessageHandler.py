@@ -15,6 +15,10 @@ class MessageHandler:
 
     async def handler(self, M: Message):
         contex = self.parse_args(M.message)
+
+        if M.message is None:
+            return
+
         isCommand = M.message.startswith(self.__client.prifix)
 
         if not isCommand:
@@ -38,8 +42,10 @@ class MessageHandler:
         self.__client.log.info(
             f"[CMD]: {self.__client.prifix}{contex[0]} from {M.chat_type} by {M.sender.user_name}({"ADMIN" if M.isAdmin else "NOT ADMIN"})"
         )
-
-        await cmd.exec(M, contex)
+        try:
+            await cmd.exec(M, contex)
+        except Exception as e:
+            self.__client.log.error(str(e))
 
     def load_commands(self, folder_path):
         for filename in os.listdir(folder_path):
@@ -68,12 +74,13 @@ class MessageHandler:
         self.__client.log.info("Successfully Loaded all the commnads")
 
     def parse_args(self, raw):
-        args = raw.split(" ")
-        cmd = args.pop(0).lower()[len(self.__client.prifix) :] if args else ""
-        text = " ".join(args)
-        flags = {
-            flag: (value if value else None)
-            for flag, value in re.findall(r"--(\w+)(?:=(\S*))?", raw)
-        }
+        if raw is not None:
+            args = raw.split(" ")
+            cmd = args.pop(0).lower()[len(self.__client.prifix) :] if args else ""
+            text = " ".join(args)
+            flags = {
+                flag: (value if value else None)
+                for flag, value in re.findall(r"--(\w+)(?:=(\S*))?", raw)
+            }
 
-        return (cmd, text, flags, args, raw)
+            return (cmd, text, flags, args, raw)

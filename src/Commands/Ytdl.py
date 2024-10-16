@@ -38,6 +38,7 @@ class Command(BaseCommand):
                     )
                     YouTubeDownloader.delete()
                 except Exception as e:
+                    self.__client.log.error(str(e))
                     return await self.client.send_message(
                         M.chat_id, "Something went wrong !", timer=60
                     )
@@ -53,6 +54,7 @@ class Command(BaseCommand):
                     )
                     YouTubeDownloader.delete()
                 except Exception as e:
+                    self.__client.log.error(str(e))
                     return await self.client.send_message(
                         M.chat_id, "Something went wrong !"
                     )
