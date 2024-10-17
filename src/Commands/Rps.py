@@ -43,17 +43,11 @@ class Command(BaseCommand):
 
     async def exec(self, M: Message, context):
 
-        if not M.is_callback or M.sender.user_id is not int(context[2].get("user_id")):
-            return await self.client.answer_callback_query(
-                callback_query_id=M.query_id,
-                text="This is not your game!🎮\n Use /rps to play!",
-                show_alert=True,
-            )
-        try:
-            if context[2].get("type") is "rounds":
-                self.Rounds = int(context[2].get("data"))
-        except ValueError:
-            pass
+        print(context[2].get("type"))
+
+        if context[2].get("type") is "rounds":
+            print(context[2].get("data"))
+            self.Rounds = int(context[2].get("data"))
 
         if self.Rounds is None:
             btn = [
@@ -65,6 +59,13 @@ class Command(BaseCommand):
             ]
             return await self.client.send_message(
                 M.chat_id, "How many rounds do you want to play?", buttons=btn
+            )
+
+        if not M.is_callback or M.sender.user_id is not int(context[2].get("user_id")):
+            return await self.client.answer_callback_query(
+                callback_query_id=M.query_id,
+                text="This is not your game!🎮\n Use /rps to play!",
+                show_alert=True,
             )
 
         btn = [

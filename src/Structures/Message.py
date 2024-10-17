@@ -59,6 +59,7 @@ class Message:
                 else None
             )
         )
+        print(self.msg_type)
 
         if self.msg_type in self.media_types_with_caption:
             self.message = self.__m.caption
@@ -66,9 +67,16 @@ class Message:
             self.message = self.__m.text
 
         if self.msg_type in ["voice", "animation", "audio", "photo", "video"]:
+            if self.reply_to_message:
+                self.file_id = getattr(
+                    getattr(self.reply_to_message, self.msg_type, {}), "file_id", None
+                )
+                print("Replied message file id : ", self.file_id)
+                return
             self.file_id = getattr(
                 getattr(self.__m, self.msg_type, {}), "file_id", None
             )
+            print("Message file id : ", self.file_id)
 
         self.mentioned = []
 
