@@ -19,29 +19,42 @@ class Command(BaseCommand):
         )
 
     async def exec(self, M: Message, contex):
-        try:
-            if M.reply_to_message:
-                print(M.mentioned[0])
-                await self.client.download_media(
-                    M.mentioned[0].user_profile_id,
-                    file_name=f"downloads/{M.mentioned[0].user_profile_id}.jpg",
-                )
-                await self.client.send_photo(
-                    M.chat_id,
-                    photo=f"src/downloads/{M.mentioned[0].user_profile_id}.jpg",
-                    caption=f"__Username__: @{M.mentioned[0].user_name}\n__UserID__: {M.mentioned[0].user_id}",
-                )
-                return os.remove(f"src/downloads/{M.mentioned[0].user_profile_id}.jpg")
+        print(M.reply_to_message)
 
+        if M.reply_to_message:
             await self.client.download_media(
-                M.sender.user_profile_id,
-                file_name=f"downloads/{M.sender.user_profile_id}.jpg",
+                M.reply_to_message.replied_user.user_profile_id,
+                file_name=f"downloads/{M.reply_to_message.replied_user.user_profile_id}.jpg",
             )
             await self.client.send_photo(
                 M.chat_id,
-                photo=f"src/downloads/{M.sender.user_profile_id}.jpg",
-                caption=f"__Username__: @{M.sender.user_name}\n__UserID__: {M.sender.user_id}",
+                photo=f"src/downloads/{M.reply_to_message.replied_user.user_profile_id}.jpg",
+                caption=f"__Username__: @{M.reply_to_message.replied_user.user_name}\n__UserID__: {M.reply_to_message.replied_user.user_id}",
             )
-            os.remove(f"src/downloads/{M.sender.user_profile_id}.jpg")
-        except Exception as e:
-            self.client.log.error(str(e))
+            return os.remove(
+                f"src/downloads/{M.reply_to_message.replied_user.user_profile_id}.jpg"
+            )
+
+        if M.mentioned:
+            mentioned_user = M.mentioned[0]
+            await self.client.download_media(
+                mentioned_user.user_profile_id,
+                file_name=f"downloads/{mentioned_user.user_profile_id}.jpg",
+            )
+            print("user profile ")
+            await self.client.send_photo(
+                M.chat_id,
+                photo=f"src/downloads/{mentioned_user.user_profile_id}.jpg",
+                caption=f"__Username__: @{mentioned_user.user_name}\n__UserID__: {mentioned_user.user_id}",
+            )
+            return os.remove(f"src/downloads/{mentioned_user.user_profile_id}.jpg")
+        await self.client.download_media(
+            M.sender.user_profile_id,
+            file_name=f"downloads/{M.sender.user_profile_id}.jpg",
+        )
+        await self.client.send_photo(
+            M.chat_id,
+            photo=f"src/downloads/{M.sender.user_profile_id}.jpg",
+            caption=f"__Username__: @{M.sender.user_name}\n__UserID__: {M.sender.user_id}",
+        )
+        os.remove(f"src/downloads/{M.sender.user_profile_id}.jpg")

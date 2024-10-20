@@ -42,10 +42,7 @@ class MessageHandler:
         self.__client.log.info(
             f"[CMD]: {self.__client.prifix}{contex[0]} from {M.chat_type} by {M.sender.user_name}({"ADMIN" if M.isAdmin else "NOT ADMIN"})"
         )
-        try:
-            await cmd.exec(M, contex)
-        except Exception as e:
-            self.__client.log.error(str(e))
+        await cmd.exec(M, contex)
 
     def load_commands(self, folder_path):
         for filename in os.listdir(folder_path):

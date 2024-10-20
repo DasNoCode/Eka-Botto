@@ -36,15 +36,15 @@ class Command(BaseCommand):
         if M.reply_to_message:
             return await self.client.send_message(M.chat_id, "Reply to a audio !")
 
-        if str(M.media).split(".")[-1] == "AUDIO":
-            await self.client.download_media(M.audio.file_id, file_name=f"{M.id}.mp3")
-            r = recognize(f"downloads/{M.id}.mp3")
+        if str(M.media_types).split(".")[-1] == "AUDIO":
+            await self.client.download_media(M.file_id, file_name=f"{M.file_id}.mp3")
+            r = recognize(f"downloads/{M.file_id}.mp3")
             await self.client.send_photo(
                 M.chat_id,
                 r.track.sections[0].meta_pages[1].image,
                 f"Name: {r.track.title}\nReleased: {r.track.sections[0].metadata[2].text}",
             )
-            os.remove(f"downloads/{M.id}.mp3")
+            os.remove(f"downloads/{M.file_id}.mp3")
         elif str(M.media).split(".")[-1] == "VOICE":
             await self.client.download_media(M.voice.file_id, file_name=f"{M.id}.ogg")
             r = recognize(f"downloads/{M.id}.ogg")

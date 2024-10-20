@@ -1,7 +1,7 @@
 import os
 import sys
 
-# from decouple import config
+from decouple import config
 from pyrogram import filters
 from pyrogram.types import CallbackQuery
 
@@ -10,11 +10,11 @@ from Handler.MessageHandler import MessageHandler
 from Structures.Client import SuperClient
 from Structures.Message import Message
 
-# name = config("NAME", default=None)
-# api_id = config("APP_ID", default=None, cast=int)
-# api_hash = config("API_HASH", default=None)
-# bot_token = config("BOT_TOKEN", default=None)
-# prefix = config("PREFIX", default=None)
+name = config("NAME", default=None)
+api_id = config("APP_ID", default=None, cast=int)
+api_hash = config("API_HASH", default=None)
+bot_token = config("BOT_TOKEN", default=None)
+prefix = config("PREFIX", default=None)
 
 
 Bot = SuperClient(
