@@ -9,14 +9,12 @@ class Command(BaseCommand):
             client,
             handler,
             {
-                "command": "hi",
+                "command": "chatid",
                 "category": "core",
-                "description": {"content": "Say hello to the bot"},
+                "description": {"content": "Give id of the chat"},
                 "exp": 1,
             },
         )
 
     async def exec(self, M: Message, contex):
-        await self.client.send_message(
-            M.chat_id, f"Hey, @{M.sender.user_name} how is your day today?"
-        )
+        await self.client.send_message(M.chat_id, f"__chat-id__: {M.chat_id}")

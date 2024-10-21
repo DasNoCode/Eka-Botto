@@ -95,9 +95,7 @@ class Utils:
     @staticmethod
     def get_urls(text):
         if text:
-            url_pattern = re.compile(r"https?://\S+")
-            urls = url_pattern.findall(text)
-            return urls
+            return text.startswith("https://")
 
     @staticmethod
     def gif_to_mp4(gif):

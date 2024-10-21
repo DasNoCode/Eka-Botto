@@ -34,8 +34,7 @@ class Command(BaseCommand):
             return os.remove(
                 f"src/downloads/{M.reply_to_message.replied_user.user_profile_id}.jpg"
             )
-
-        if M.mentioned:
+        elif M.mentioned:
             mentioned_user = M.mentioned[0]
             await self.client.download_media(
                 mentioned_user.user_profile_id,
