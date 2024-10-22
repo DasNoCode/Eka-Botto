@@ -69,13 +69,3 @@ class Command(BaseCommand):
             self.__client.log.error(str(e))
 
         os.remove(f"src/{file_path}")
-
-
-# if M.reply_to_message:
-#    path = reply.download()
-#    info = self.tracemoe.search(path, upload_file=True)
-
-#    video_path = f"{reply.from_user.id}.mp4"
-#    info.result[0].save(video_path, mute=False)
-#    await reply.reply_document(video_path, caption=data)
-#    os.remove(video_path)

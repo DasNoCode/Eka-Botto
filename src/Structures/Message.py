@@ -61,18 +61,18 @@ class Message:
                 }
             )
             self.msg_type = (
-                str(self.reply_to_message.media.name).lower()
+                str(self.reply_to_message.media).split(".")[-1].lower()
                 if self.reply_to_message.media
                 else None
             )
         else:
             self.msg_type = (
-                str(getattr(self.__m, "media").name).lower()
-                if self.__m.media in self.media_types
-                else None
+                str(self.__m.media).split(".")[-1].lower() if self.__m.media else None
             )
 
-        if not self.is_callback:
+        print(self.msg_type)
+
+        if self.is_callback is False:
             if self.msg_type and self.__m.caption:
                 self.message = self.__m.caption
             else:
@@ -87,6 +87,7 @@ class Message:
             self.file_id = getattr(
                 getattr(self.__m, self.msg_type, {}), "file_id", None
             )
+        print(self.message)
 
     async def get_valid_user_ids(self, message):
         valid_users = []
@@ -122,7 +123,6 @@ class Message:
                     "user_profile_id": getattr(reply_user.photo, "big_file_id", None),
                 }
             )
-
         return self
 
     def raw(self):
