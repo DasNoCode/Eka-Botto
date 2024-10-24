@@ -18,42 +18,35 @@ class Command(BaseCommand):
                 "exp": 1,
             },
         )
-        self.user_id = None
+        self.user_id = 0
         self.UserPoints = 0
         self.BotPoints = 0
-        self.Rounds = None
+        self.tergetRounds = 0
+        self.playedRounds = 0
 
-    async def check_points(self, M: Message):
-        if self.UserPoints + self.BotPoints == self.Rounds:
-            await self.client.send_message(
-                M.chat_id,
-                (
-                    "Congratulations! You won this game!"
-                    if self.UserPoints >= self.BotPoints
-                    else "Unfortunately, you lost this game.\n__/rps <- Try your luck again__"
-                ),
-            )
-            self.reset_game()
-            return True
-        return False
+    def isWon(self):
+        if self.playedRounds == 0:
+            return True if self.UserPoints > self.BotPoints else False
 
     def reset_game(self):
-        self.BotPoints = self.UserPoints = 0
-        self.user_id = self.Rounds = None
+        self.BotPoints = 0
+        self.UserPoints = 0
+        self.tergetRounds = 0
+        self.user_id = 0
+        self.playedRounds = 0
 
     async def exec(self, M: Message, context):
+        if context[2].get("type") == "rounds":
+            try:
+                self.tergetRounds = int(context[2].get("data"))
+            except ValueError:
+                self.tergetRounds = 0
 
-        print(context[2].get("type"))
-
-        if context[2].get("type") is "rounds":
-            print(context[2].get("data"))
-            self.Rounds = int(context[2].get("data"))
-
-        if self.Rounds is None:
+        if self.tergetRounds == 0:
             btn = [
                 {
                     "text": str(i),
-                    "callback_data": f"/rps --type=rounds --data={i} --user_id={int(context[2].get('user_id'))}",
+                    "callback_data": f"/rps --type=rounds --data={i} --user_id={M.sender.user_id}",
                 }
                 for i in [4, 8, 12]
             ]
@@ -61,7 +54,10 @@ class Command(BaseCommand):
                 M.chat_id, "How many rounds do you want to play?", buttons=btn
             )
 
-        if not M.is_callback or M.sender.user_id is not int(context[2].get("user_id")):
+        if not M.is_callback:
+            return
+
+        if M.sender.user_id != int(context[2].get("user_id")):
             return await self.client.answer_callback_query(
                 callback_query_id=M.query_id,
                 text="This is not your game!🎮\n Use /rps to play!",
@@ -83,44 +79,49 @@ class Command(BaseCommand):
             },
         ]
 
-        if await self.check_points(M):
-            return
-
         user_choice = context[2].get("data").lower()
         bot_choice = random.choice(["rock", "paper", "scissors"])
 
-        if user_choice is bot_choice:
-            await self.client.edit_message_text(
-                chat_id=M.chat_id,
-                message_id=M.message_id,
-                text=f"{M.sender.user_name} 👤  Vs   Bot 🤖\nTie Game!",
-                buttons=btn,
-            )
-        elif (
-            (user_choice is "rock" and bot_choice is "scissors")
-            or (user_choice is "paper" and bot_choice is "rock")
-            or (user_choice is "scissors" and bot_choice is "paper")
-        ):
+        text = f"**Rounds**: {self.playedRounds} of {self.tergetRounds} 🔢\n"
+
+        if user_choice == bot_choice:
+            result_text = "🤝 **It's a Tie!** 🤝"
+        elif (user_choice, bot_choice) in [
+            ("rock", "scissors"),
+            ("paper", "rock"),
+            ("scissors", "paper"),
+        ]:
             self.UserPoints += 1
+            result_text = "🎉 **You won this round!** 🎉"
         else:
             self.BotPoints += 1
+            result_text = "🤖 **Bot won this round!** 🤖"
 
-        await self.client.edit_message_text(
+        if self.playedRounds == 0:
+            text += f"__{M.sender.user_name} 👤  Vs   @{M.bot_username} 🤖__\n"
+        elif self.playedRounds == self.tergetRounds:
+            self.reset_game()
+            btn = None
+            text = (
+                "🏆 **Congratulations! You won this game!** 🏆"
+                if self.isWon()
+                else "😢 **Unfortunately, you lost this game.** 😢\n__/rps <- Try your luck again!__"
+            )
+        else:
+            text += f"__Points:__\n**@{M.sender.user_name}**: {self.UserPoints} 👤 vs **@{M.bot_username}**: {self.BotPoints} 🤖\n{result_text}"
+
+        self.playedRounds += 1
+
+        msg = await self.client.edit_message_text(
             chat_id=M.chat_id,
             message_id=M.message_id,
-            text=f"{M.sender.user_name}: {self.UserPoints}\nBot: {self.BotPoints}",
+            text=text,
             buttons=btn,
         )
 
-    async def timer(self, chat_id):
-        await asyncio.sleep(60)
-        await self.delete_message(chat_id, self.captcha_message_id)
+        await self.timer(msg)
 
-    async def delete_message(self, chat_id, message_id):
-        if message_id:
-            try:
-                await self.client.delete_messages(
-                    chat_id=chat_id, message_ids=message_id
-                )
-            except Exception as e:
-                print(f"Failed to delete captcha message: {e}")
+    async def timer(self, msg):
+        await asyncio.sleep(60)
+        self.reset_game()
+        await self.client.delete_messages(msg.chat.id, msg.id)

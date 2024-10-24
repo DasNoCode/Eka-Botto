@@ -42,6 +42,11 @@ class Message:
                 }
             )
         self.chat_info = self.__m.chat
+        self.chat_title = (
+            self.__m.chat.title
+            if self.__m.chat.type in ["group", "supergroup", "channel"]
+            else None
+        )
         self.reply_to_message = self.__m.reply_to_message
         self.chat_type = (
             "SUPERGROUP"
@@ -110,6 +115,8 @@ class Message:
         return valid_users
 
     async def build(self):
+        self.bot_username = (await self.__client.get_me()).username
+        print(self.bot_username)
         self.urls = self.__client.utils.get_urls(self.message)
         self.numbers = self.__client.utils.extract_numbers(self.message)
         self.isAdmin = await self.__client.admincheck(self.__m)

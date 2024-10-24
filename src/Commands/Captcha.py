@@ -28,7 +28,8 @@ class Command(BaseCommand):
 
     async def exec(self, M: Message, context):
         if not M.is_callback:
-            return
+            if not M.isAdmin:
+                return
 
         user_id = int(context[2].get("user_id"))
         if user_id != M.sender.user_id:

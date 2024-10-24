@@ -246,3 +246,58 @@ class SuperClient(Client):
                             )
         except pyrogram.StopTransmission:
             return None
+
+    async def edit_message_text(
+        self: "pyrogram.Client",
+        chat_id: Union[int, str],
+        message_id: int,
+        text: str,
+        parse_mode: Optional["enums.ParseMode"] = None,
+        entities: List["types.MessageEntity"] = None,
+        disable_web_page_preview: bool = None,
+        buttons=None,
+    ) -> "types.Message":
+        reply_markup = None
+
+        # Prepare the reply markup if buttons are provided
+        if buttons:
+            # Process each button, assign unique callback_data, and create reply_markup
+            for button in buttons:
+                original_data = button["callback_data"]
+                hash_object = hashlib.sha256(original_data.encode())
+                hash_key = hash_object.hexdigest()[:10]
+                self.callback_data_map[hash_key] = original_data
+                button["callback_data"] = hash_key
+
+            # Create InlineKeyboardMarkup for the buttons
+            reply_markup = types.InlineKeyboardMarkup(
+                [
+                    [
+                        types.InlineKeyboardButton(
+                            button["text"], callback_data=button["callback_data"]
+                        )
+                    ]
+                    for button in buttons
+                ]
+            )
+
+        r = await self.invoke(
+            raw.functions.messages.EditMessage(
+                peer=await self.resolve_peer(chat_id),
+                id=message_id,
+                no_webpage=disable_web_page_preview or None,
+                reply_markup=await reply_markup.write(self) if reply_markup else None,
+                **await utils.parse_text_entities(self, text, parse_mode, entities)
+            )
+        )
+
+        for i in r.updates:
+            if isinstance(
+                i, (raw.types.UpdateEditMessage, raw.types.UpdateEditChannelMessage)
+            ):
+                return await types.Message._parse(
+                    self,
+                    i.message,
+                    {i.id: i for i in r.users},
+                    {i.id: i for i in r.chats},
+                )
