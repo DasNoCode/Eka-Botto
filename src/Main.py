@@ -18,7 +18,12 @@ prefix = config("PREFIX", default=None)
 
 
 Bot = SuperClient(
-    name=name, api_id=api_id, api_hash=api_hash, bot_token=bot_token, prefix=prefix
+    name=name,
+    api_id=api_id,
+    api_hash=api_hash,
+    bot_token=bot_token,
+    prefix=prefix,
+    owner_id=0,
 )
 
 sys.path.insert(0, os.getcwd())
@@ -45,7 +50,6 @@ async def on_message(client: SuperClient, message: Message):
 
 @Bot.on_callback_query()
 async def on_callback(client: SuperClient, callback: CallbackQuery):
-    callback.data = Bot.callback_data_map[callback.data]
     await instance.handler(await Message(client, callback).build())
 
 

@@ -1,4 +1,4 @@
-from pyrogram.types import ChatPrivileges
+from pyrogram.types import ChatPermissions
 
 from Structures.Command.BaseCommand import BaseCommand
 from Structures.Message import Message
@@ -11,9 +11,9 @@ class Command(BaseCommand):
             client,
             handler,
             {
-                "command": "promote",
+                "command": "mute",
                 "category": "core",
-                "description": {"content": "Promote the user to Admin of chat"},
+                "description": {"content": "Say hello to the bot"},
                 "exp": 1,
             },
         )
@@ -33,20 +33,8 @@ class Command(BaseCommand):
             user_name = usermentioned_user.user_name
             user_id = usermentioned_user.user_id
 
-        await self.client.promote_chat_member(
-            M.chat_id,
-            user_id,
-            ChatPrivileges(
-                can_change_info=True,
-                can_invite_users=True,
-                can_restrict_members=True,
-                can_pin_messages=True,
-                can_promote_members=True,
-                can_manage_video_chats=True,
-                is_anonymous=False,
-            ),
-        )
+        await self.client.restrict_chat_member(M.chat_id, user_id, ChatPermissions())
         await self.client.send_message(
             M.chat_id,
-            f"__Successfully promoted @{user_name} to admin in {M.chat_title}__",
+            f"__Successfully muted @{user_name} from {M.chat_title}__",
         )

@@ -19,7 +19,6 @@ class Command(BaseCommand):
         )
 
     async def exec(self, M: Message, contex):
-        # BaseException
         if M.reply_to_message:
             try:
                 print(M.reply_to_message.text)

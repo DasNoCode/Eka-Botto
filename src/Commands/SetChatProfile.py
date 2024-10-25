@@ -19,7 +19,7 @@ class Command(BaseCommand):
         )
 
     async def exec(self, M: Message, contex):
-        print(M.isAdmin)
+
         if M.isAdmin is not True:
             return await self.client.send_message(
                 M.chat_id,

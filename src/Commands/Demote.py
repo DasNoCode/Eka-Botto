@@ -11,9 +11,9 @@ class Command(BaseCommand):
             client,
             handler,
             {
-                "command": "promote",
+                "command": "demote",
                 "category": "core",
-                "description": {"content": "Promote the user to Admin of chat"},
+                "description": {"content": "demote the user to Admin of chat"},
                 "exp": 1,
             },
         )
@@ -37,16 +37,16 @@ class Command(BaseCommand):
             M.chat_id,
             user_id,
             ChatPrivileges(
-                can_change_info=True,
-                can_invite_users=True,
-                can_restrict_members=True,
-                can_pin_messages=True,
-                can_promote_members=True,
-                can_manage_video_chats=True,
+                can_change_info=False,
+                can_invite_users=False,
+                can_restrict_members=False,
+                can_pin_messages=False,
+                can_promote_members=False,
+                can_manage_video_chats=False,
                 is_anonymous=False,
             ),
         )
         await self.client.send_message(
             M.chat_id,
-            f"__Successfully promoted @{user_name} to admin in {M.chat_title}__",
+            f"__Successfully demoted @{user_name} to user in {M.chat_title}__",
         )

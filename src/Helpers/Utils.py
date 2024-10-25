@@ -93,9 +93,9 @@ class Utils:
         return [Utils.get_random_item(array) for _ in range(count)]
 
     @staticmethod
-    def get_urls(text):
-        if text:
-            return text.startswith("https://")
+    def extract_links(text):
+        url_pattern = r"https?://[^\s]+"
+        return re.findall(url_pattern, text)
 
     @staticmethod
     def gif_to_mp4(gif):
@@ -134,3 +134,24 @@ class Utils:
             size /= power
             raised_to_pow += 1
         return str(round(size, 2)) + " " + dict_power_n[raised_to_pow] + "B"
+
+    @staticmethod
+    def uptime():
+        try:
+            with open("/proc/uptime") as f:
+                total_seconds = float(f.read().split()[0])
+        except IOError:
+            return "Cannot open uptime file: /proc/uptime"
+
+        MINUTE, HOUR, DAY = 60, 3600, 86400
+        days, remainder = divmod(total_seconds, DAY)
+        hours, remainder = divmod(remainder, HOUR)
+        minutes, seconds = divmod(remainder, MINUTE)
+
+        parts = [
+            f"{int(days)} day{'s' if days != 1 else ''}",
+            f"{int(hours)} hour{'s' if hours != 1 else ''}",
+            f"{int(minutes)} minute{'s' if minutes != 1 else ''}",
+            f"{int(seconds)} second{'s' if seconds != 1 else ''}",
+        ]
+        return ", ".join(part for part in parts if not part.startswith("0"))

@@ -1,6 +1,8 @@
 import asyncio
 import random
 
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
 from Structures.Command.BaseCommand import BaseCommand
 from Structures.Message import Message
 
@@ -43,15 +45,19 @@ class Command(BaseCommand):
                 self.tergetRounds = 0
 
         if self.tergetRounds == 0:
-            btn = [
-                {
-                    "text": str(i),
-                    "callback_data": f"/rps --type=rounds --data={i} --user_id={M.sender.user_id}",
-                }
-                for i in [4, 8, 12]
-            ]
+            btn = InlineKeyboardMarkup(
+                [
+                    [
+                        InlineKeyboardButton(
+                            text=str(i),
+                            callback_data=f"/rps --type=rounds --data={i} --user_id={M.sender.user_id}",
+                        )
+                    ]
+                    for i in [4, 8, 12]
+                ]
+            )
             return await self.client.send_message(
-                M.chat_id, "How many rounds do you want to play?", buttons=btn
+                M.chat_id, "How many rounds do you want to play?", reply_markup=btn
             )
 
         if not M.is_callback:
@@ -63,22 +69,24 @@ class Command(BaseCommand):
                 text="This is not your game!🎮\n Use /rps to play!",
                 show_alert=True,
             )
-
-        btn = [
-            {
-                "text": "Rock",
-                "callback_data": f"/rps --type=game --data=Rock --user_id={int(context[2].get('user_id'))}",
-            },
-            {
-                "text": "Paper",
-                "callback_data": f"/rps --type=game --data=Paper --user_id={int(context[2].get('user_id'))}",
-            },
-            {
-                "text": "Scissors",
-                "callback_data": f"/rps --type=game --data=Scissors --user_id={int(context[2].get('user_id'))}",
-            },
-        ]
-
+        btn = InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton(
+                        "Rock 🪨 ",
+                        callback_data=f"/rps --type=game --data=Rock --user_id={int(context[2].get('user_id'))}",
+                    ),
+                    InlineKeyboardButton(
+                        "Paper 📄",
+                        callback_data=f"/rps --type=game --data=Paper --user_id={int(context[2].get('user_id'))}",
+                    ),
+                    InlineKeyboardButton(
+                        "scissors ✂️",
+                        callback_data=f"/rps --type=game --data=Scissors --user_id={int(context[2].get('user_id'))}",
+                    ),
+                ],
+            ]
+        )
         user_choice = context[2].get("data").lower()
         bot_choice = random.choice(["rock", "paper", "scissors"])
 
@@ -116,7 +124,7 @@ class Command(BaseCommand):
             chat_id=M.chat_id,
             message_id=M.message_id,
             text=text,
-            buttons=btn,
+            reply_markup=btn,
         )
 
         await self.timer(msg)

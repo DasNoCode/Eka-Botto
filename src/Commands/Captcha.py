@@ -4,7 +4,7 @@ import random
 import string
 
 from captcha.image import ImageCaptcha
-from pyrogram.types import ChatPermissions
+from pyrogram.types import ChatPermissions, InlineKeyboardButton, InlineKeyboardMarkup
 
 from Handler.EventHandler import CHAT_IDS
 from Structures.Command.BaseCommand import BaseCommand
@@ -72,13 +72,17 @@ class Command(BaseCommand):
             M.chat_id,
             "Captcha.png",
             caption="__Here is your Captcha! Solve it within 1 minute.__",
-            buttons=[
-                {
-                    "text": code,
-                    "callback_data": f"/captcha --code={code} --user_id={user_id}",
-                }
-                for code in codes.values()
-            ],
+            buttons=InlineKeyboardMarkup(
+                [
+                    [
+                        InlineKeyboardButton(
+                            text=code,
+                            callback_data=f"/captcha --code={code} --user_id={user_id}",
+                        )
+                    ]
+                    for code in codes.values()
+                ]
+            ),
         )
         self.captcha_message_id = message.id
 

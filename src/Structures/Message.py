@@ -42,11 +42,7 @@ class Message:
                 }
             )
         self.chat_info = self.__m.chat
-        self.chat_title = (
-            self.__m.chat.title
-            if self.__m.chat.type in ["group", "supergroup", "channel"]
-            else None
-        )
+        self.chat_title = self.chat_info.title
         self.reply_to_message = self.__m.reply_to_message
         self.chat_type = (
             "SUPERGROUP"
@@ -75,8 +71,6 @@ class Message:
                 str(self.__m.media).split(".")[-1].lower() if self.__m.media else None
             )
 
-        print(self.msg_type)
-
         if self.is_callback is False:
             if self.msg_type and self.__m.caption:
                 self.message = self.__m.caption
@@ -92,7 +86,6 @@ class Message:
             self.file_id = getattr(
                 getattr(self.__m, self.msg_type, {}), "file_id", None
             )
-        print(self.message)
 
     async def get_valid_user_ids(self, message):
         valid_users = []
@@ -116,8 +109,7 @@ class Message:
 
     async def build(self):
         self.bot_username = (await self.__client.get_me()).username
-        print(self.bot_username)
-        self.urls = self.__client.utils.get_urls(self.message)
+        self.urls = self.__client.utils.extract_links(self.message)
         self.numbers = self.__client.utils.extract_numbers(self.message)
         self.isAdmin = await self.__client.admincheck(self.__m)
         self.mentioned = await self.get_valid_user_ids(self.message)

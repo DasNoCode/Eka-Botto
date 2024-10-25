@@ -53,6 +53,7 @@ class YouTubeDownloader:
 
     def audio_dl(url: str):
         try:
+            url = f"https://youtu.be/{url}"
             yt = YouTube(url)
             audio_stream = yt.streams.filter(only_audio=True).first()
             if audio_stream is None:
@@ -65,6 +66,7 @@ class YouTubeDownloader:
 
     def video_dl(url: str):
         try:
+            url = f"https://youtu.be/{url}"
             yt = YouTube(url)
             video_stream = yt.streams.get_highest_resolution()
             if video_stream is None:

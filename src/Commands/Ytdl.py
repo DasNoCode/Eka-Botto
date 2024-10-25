@@ -1,3 +1,7 @@
+import re
+
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
 from Helpers.Ytdl import YouTubeDownloader
 from Structures.Command.BaseCommand import BaseCommand
 from Structures.Message import Message
@@ -12,19 +16,16 @@ class Command(BaseCommand):
             {
                 "command": "ytdl",
                 "category": "core",
-                "description": {"content": "Download Youtube videos and music"},
+                "description": {
+                    "content": "Download Youtube videos and music",
+                    "usage": "ytdl [url]",
+                },
                 "exp": 1,
             },
         )
 
     async def exec(self, M: Message, contex):
-        if not len(M.urls):
-            await self.client.send_message(
-                M.chat_id, "Provide the youtube video link🔗 to download.", timer=6
-            )
-
         keys = list(contex[2].keys())
-
         if len(keys) > 0:
             if keys[0] == "video":
                 try:
@@ -38,9 +39,9 @@ class Command(BaseCommand):
                     )
                     YouTubeDownloader.delete()
                 except Exception as e:
-                    self.__client.log.error(str(e))
+                    self.__client.log.error(e)
                     return await self.client.send_message(
-                        M.chat_id, "Something went wrong !", timer=60
+                        M.chat_id, "Something went wrong !"
                     )
             if keys[0] == "audio":
                 try:
@@ -54,15 +55,33 @@ class Command(BaseCommand):
                     )
                     YouTubeDownloader.delete()
                 except Exception as e:
-                    self.__client.log.error(str(e))
+                    self.__client.log.error(e)
                     return await self.client.send_message(
                         M.chat_id, "Something went wrong !"
                     )
 
-        keybord = [
-            {"text": "YouTube video 📼", "callback_data": f"/ytdl --video={M.urls[0]}"},
-            {"text": "YouTube Music 🎶", "callback_data": f"/ytdl --audio={M.urls[0]}"},
-        ]
+        if not M.urls:
+            return await self.client.send_message(
+                M.chat_id, "Provide the youtube video link🔗 to download."
+            )
+
+        url = M.urls[0]
+        match = re.search(r"(?:be\/|v=)([^&\/?]+)\?si=[\w]+", url)
+        media_id = match.group(1) if match else None
+        btn = InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton(
+                        "YouTube video 📼", callback_data=f"/ytdl --video={media_id}"
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        "YouTube Music 🎶", callback_data=f"/ytdl --audio={media_id}"
+                    )
+                ],
+            ]
+        )
         await self.client.send_message(
-            M.chat_id, "What you want to download ?", buttons=keybord
+            M.chat_id, "What you want to download ?", buttons=btn
         )
