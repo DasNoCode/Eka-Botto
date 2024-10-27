@@ -4,4 +4,5 @@ src/Structures/__pycache__
 src/Structures/Command/__pycache__
 src/Helpers/__pycache__
 .env
-src/Robotto.session
+src/Eka-Botto.session
+myenv
