@@ -56,11 +56,11 @@ class Command(BaseCommand):
 
                 await self.client.send_message(
                     M.chat_id,
-                    f"__Native_title__ - {native_title} \n"
-                    f"__English_title__ - {english_title} \n"
-                    f"__Similarity__ - {similarity * 100:.2f}% \n"
-                    f"__Episode__ - {episode} \n"
-                    f"__Is_adult__ - {is_adult}",
+                    f"• __Native_title__ - `{native_title}` \n"
+                    f"• __English_title__ - `{english_title}` \n"
+                    f"• __Similarity__ - {similarity * 100:.2f}% \n"
+                    f"• __Episode__ - {episode} \n"
+                    f"• __Is_adult__ - {is_adult}",
                 )
             else:
                 await self.client.send_message(M.chat_id, "__No results found.__")

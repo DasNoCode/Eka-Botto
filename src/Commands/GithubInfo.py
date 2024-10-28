@@ -40,24 +40,36 @@ class Command(BaseCommand):
                 company = result.get("company", None)
                 bio = result.get("bio", None)
                 created_at = result.get("created_at", "Not Found")
+                MAX_REPOS_DISPLAY = 5
+                MAX_MESSAGE_LENGTH = 4096
 
                 REPLY = (
-                    f"**GitHub Info for `{username}`**"
-                    f"\n**Username:** `{name}`\n**Bio:** `{bio}`\n**URL:** {url}"
-                    f"\n**Company:** `{company}`\n**Created at:** `{created_at}`"
+                    f"[**GitHub Info 🧑‍💻**]\n"
+                    f"• **Username** : `{username}`\n"
+                    f"• **Bio** : __{bio}__\n"
+                    f"• **URL** : __{url}__\n"
+                    f"• **Company** : __{company}__\n"
+                    f"• **Created at** : __{created_at}__\n"
                 )
 
-                if not result.get("repos_url", None):
+                if not result.get("repos_url"):
                     return await self.client.send_message(M.chat_id, REPLY)
 
-                async with session.get(result.get("repos_url", None)) as request:
+                async with session.get(result["repos_url"]) as request:
                     if request.status == 404:
                         return await self.client.send_message(M.chat_id, REPLY)
 
                     repos = await request.json()
-                    REPLY += "\n**Repos:**\n"
+                    if repos:
+                        REPLY += "• **Repos** :\n"
+                        for repo in repos[:MAX_REPOS_DISPLAY]:
+                            repo_info = (
+                                f"[{repo.get('name')}]({repo.get('html_url')})\n"
+                            )
+                            if len(REPLY) + len(repo_info) > MAX_MESSAGE_LENGTH:
+                                await self.client.send_message(M.chat_id, REPLY)
+                                REPLY = ""
+                            REPLY += repo_info
 
-                    for repo in repos:
-                        REPLY += f"[{repo.get('name')}]({repo.get('html_url')})\n"
-
-                    await self.client.send_message(M.chat_id, REPLY)
+                    if REPLY:
+                        await self.client.send_message(M.chat_id, REPLY)

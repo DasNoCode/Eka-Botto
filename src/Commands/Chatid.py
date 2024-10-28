@@ -17,4 +17,4 @@ class Command(BaseCommand):
         )
 
     async def exec(self, M: Message, contex):
-        await self.client.send_message(M.chat_id, f"__chat-id__: {M.chat_id}")
+        await self.client.send_message(M.chat_id, f"__chat-id__: `{M.chat_id}`")

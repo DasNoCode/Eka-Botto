@@ -8,7 +8,6 @@ from Structures.Message import Message
 
 
 class Command(BaseCommand):
-
     def __init__(self, client, handler):
         super().__init__(
             client,
@@ -16,35 +15,35 @@ class Command(BaseCommand):
             {
                 "command": "rps",
                 "category": "core",
-                "description": {"content": "Send the profile picture of the user."},
+                "description": {"content": "Play Rock-Paper-Scissors with the bot."},
                 "exp": 1,
             },
         )
-        self.user_id = 0
-        self.UserPoints = 0
-        self.BotPoints = 0
-        self.tergetRounds = 0
-        self.playedRounds = 0
+        self.reset_game()
 
-    def isWon(self):
-        if self.playedRounds == 0:
-            return True if self.UserPoints > self.BotPoints else False
+    def is_winner(self):
+        return self.user_points > self.bot_points
 
     def reset_game(self):
-        self.BotPoints = 0
-        self.UserPoints = 0
-        self.tergetRounds = 0
+        self.bot_points = 0
+        self.user_points = 0
+        self.targetRounds = 0
         self.user_id = 0
         self.playedRounds = 0
 
     async def exec(self, M: Message, context):
+        self.text = (
+            f"@{M.sender.user_name}  **VS**  @{M.bot_username} \n• **Type** =  __Rock-Paper-Scissors__ \n"
+            f"• **Score** = 👤 -  **{self.user_points}** | 🤖 -  **{self.bot_points}**"
+        )
+
         if context[2].get("type") == "rounds":
             try:
-                self.tergetRounds = int(context[2].get("data"))
+                self.targetRounds = int(context[2].get("data"))
             except ValueError:
-                self.tergetRounds = 0
+                self.targetRounds = 0
 
-        if self.tergetRounds == 0:
+        if self.targetRounds == 0:
             btn = InlineKeyboardMarkup(
                 [
                     [
@@ -52,8 +51,8 @@ class Command(BaseCommand):
                             text=str(i),
                             callback_data=f"/rps --type=rounds --data={i} --user_id={M.sender.user_id}",
                         )
+                        for i in [4, 8, 12]
                     ]
-                    for i in [4, 8, 12]
                 ]
             )
             return await self.client.send_message(
@@ -69,61 +68,60 @@ class Command(BaseCommand):
                 text="This is not your game!🎮\n Use /rps to play!",
                 show_alert=True,
             )
-        btn = InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton(
-                        "Rock 🪨 ",
-                        callback_data=f"/rps --type=game --data=Rock --user_id={int(context[2].get('user_id'))}",
-                    ),
-                    InlineKeyboardButton(
-                        "Paper 📄",
-                        callback_data=f"/rps --type=game --data=Paper --user_id={int(context[2].get('user_id'))}",
-                    ),
-                    InlineKeyboardButton(
-                        "scissors ✂️",
-                        callback_data=f"/rps --type=game --data=Scissors --user_id={int(context[2].get('user_id'))}",
-                    ),
-                ],
-            ]
-        )
+
         user_choice = context[2].get("data").lower()
         bot_choice = random.choice(["rock", "paper", "scissors"])
 
-        text = f"**Rounds**: {self.playedRounds} of {self.tergetRounds} 🔢\n"
-
         if user_choice == bot_choice:
-            result_text = "🤝 **It's a Tie!** 🤝"
+            self.playedRounds += 1
+            result_text = f"{self.text}\n• **Game** = __Tie Game__"
         elif (user_choice, bot_choice) in [
             ("rock", "scissors"),
             ("paper", "rock"),
             ("scissors", "paper"),
         ]:
-            self.UserPoints += 1
-            result_text = "🎉 **You won this round!** 🎉"
+            self.user_points += 1
+            self.playedRounds += 1
+            result_text = f"{self.text}\n• **Game** = __@{M.sender.user_name} Win__"
         else:
-            self.BotPoints += 1
-            result_text = "🤖 **Bot won this round!** 🤖"
+            self.bot_points += 1
+            self.playedRounds += 1
+            print("++")
+            result_text = f"{self.text}\n• **Game** = __@{M.bot_username} Win__"
 
-        if self.playedRounds == 0:
-            text += f"__{M.sender.user_name} 👤  Vs   @{M.bot_username} 🤖__\n"
-        elif self.playedRounds == self.tergetRounds:
+        if self.playedRounds == self.targetRounds:
+            game_result = (
+                f"{self.text}\n• **Game** = __@{M.sender.user_name} Wins the game! 🏆__"
+                if self.is_winner()
+                else f"{self.text}\n• **Game** = __@{M.sender.user_name} lost the game 😢\n/rps - Try your luck again!__"
+            )
             self.reset_game()
             btn = None
-            text = (
-                "🏆 **Congratulations! You won this game!** 🏆"
-                if self.isWon()
-                else "😢 **Unfortunately, you lost this game.** 😢\n__/rps <- Try your luck again!__"
-            )
+            result_text = game_result
         else:
-            text += f"__Points:__\n**@{M.sender.user_name}**: {self.UserPoints} 👤 vs **@{M.bot_username}**: {self.BotPoints} 🤖\n{result_text}"
-
-        self.playedRounds += 1
+            btn = InlineKeyboardMarkup(
+                [
+                    [
+                        InlineKeyboardButton(
+                            "Rock 🪨",
+                            callback_data=f"/rps --type=game --data=Rock --user_id={M.sender.user_id}",
+                        ),
+                        InlineKeyboardButton(
+                            "Paper 📄",
+                            callback_data=f"/rps --type=game --data=Paper --user_id={M.sender.user_id}",
+                        ),
+                        InlineKeyboardButton(
+                            "Scissors ✂️",
+                            callback_data=f"/rps --type=game --data=Scissors --user_id={M.sender.user_id}",
+                        ),
+                    ]
+                ]
+            )
 
         msg = await self.client.edit_message_text(
             chat_id=M.chat_id,
             message_id=M.message_id,
-            text=text,
+            text=result_text,
             reply_markup=btn,
         )
 

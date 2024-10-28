@@ -116,7 +116,10 @@ class Command(BaseCommand):
             )
             return
 
-        if not M.is_callback or M.sender.user_id != self.user_id:
+        if not M.is_callback:
+            return
+
+        if M.sender.user_id != self.user_id:
             return await self.client.answer_callback_query(
                 callback_query_id=M.query_id,
                 text="__This is not your game!🎮\n Use /ttt to play__",

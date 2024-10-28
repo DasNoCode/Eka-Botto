@@ -27,8 +27,8 @@ class Command(BaseCommand):
         self.captcha_message_id = None
 
     async def exec(self, M: Message, context):
-        if not M.is_callback:
-            if not M.isAdmin:
+        if not M.isAdmin:
+            if not M.is_callback:
                 return
 
         user_id = int(context[2].get("user_id"))

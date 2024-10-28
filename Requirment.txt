@@ -9,3 +9,4 @@ tracemoepy         4.1
 bs4                0.0.2
 captcha            0.6.0
 beautifulsoup4     4.12.3
+gtts               2.5.3
