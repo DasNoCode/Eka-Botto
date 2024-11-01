@@ -109,6 +109,7 @@ class Message:
 
     async def build(self):
         self.bot_username = (await self.__client.get_me()).username
+        self.bot_userid = (await self.__client.get_me()).id
         self.urls = self.__client.utils.extract_links(self.message)
         self.numbers = self.__client.utils.extract_numbers(self.message)
         self.isAdmin = await self.__client.admincheck(self.__m)

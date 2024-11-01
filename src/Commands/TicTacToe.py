@@ -14,7 +14,7 @@ class Command(BaseCommand):
             handler,
             {
                 "command": "ttt",
-                "category": "core",
+                "category": "game",
                 "description": {"content": "Play Tic-Tac-Toe with the bot"},
                 "exp": 1,
             },

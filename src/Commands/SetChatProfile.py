@@ -12,7 +12,7 @@ class Command(BaseCommand):
             handler,
             {
                 "command": "chatprofile",
-                "category": "core",
+                "category": "chat",
                 "description": {"content": "Set the chat profile picture"},
                 "exp": 1,
             },
@@ -20,11 +20,11 @@ class Command(BaseCommand):
 
     async def exec(self, M: Message, contex):
 
-        if M.isAdmin is not True:
-            return await self.client.send_message(
-                M.chat_id,
-                f"@{M.sender.user_name}, __you don't have the rights to do so!__",
-            )
+        # if M.isAdmin is not True:
+        #     return await self.client.send_message(
+        #         M.chat_id,
+        #         f"@{M.sender.user_name}, __you don't have the rights to do so!__",
+        #     )
 
         if M.msg_type is "photo":
             await self.client.send_message(

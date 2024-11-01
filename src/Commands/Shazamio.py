@@ -15,7 +15,7 @@ class Command(BaseCommand):
             handler,
             {
                 "command": "shazamio",
-                "category": "core",
+                "category": "media",
                 "description": {"content": "Identify the music playing around you"},
                 "exp": 1,
             },

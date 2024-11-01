@@ -12,7 +12,7 @@ class Command(BaseCommand):
             handler,
             {
                 "command": "git",
-                "category": "core",
+                "category": "utility",
                 "description": {"content": "Get GitHub user information"},
                 "exp": 1,
             },

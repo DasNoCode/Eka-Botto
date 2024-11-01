@@ -12,7 +12,7 @@ class Command(BaseCommand):
             handler,
             {
                 "command": "demote",
-                "category": "core",
+                "category": "chat",
                 "description": {"content": "demote the user to Admin of chat"},
                 "exp": 1,
             },
@@ -20,10 +20,10 @@ class Command(BaseCommand):
 
     async def exec(self, M: Message, contex):
 
-        if not M.isAdmin:
-            return await self.client.send_message(
-                M.chat_id, f"__@{M.sender.user_name} you don't have rights to do so!__."
-            )
+        # if not M.isAdmin:
+        #     return await self.client.send_message(
+        #         M.chat_id, f"__@{M.sender.user_name} you don't have rights to do so!__."
+        #     )
 
         if M.reply_to_message:
             user_name = M.sender.user_name

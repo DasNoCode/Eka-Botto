@@ -3,6 +3,7 @@ from pyromod import Client
 
 from Helpers.Logger import get_logger
 from Helpers.Utils import Utils
+from Structures.Database import Database as db
 
 
 class SuperClient(Client):
@@ -12,6 +13,7 @@ class SuperClient(Client):
         api_id: int,
         api_hash: str,
         bot_token: str,
+        filepath: str,
         prefix: str,
         owner_id: int,
     ):
@@ -20,8 +22,13 @@ class SuperClient(Client):
         )
         self.prifix = prefix
         self.log = get_logger()
+        self.filepath = filepath
         self.utils = Utils()
         self.owner_id = owner_id
+
+    @property
+    def db(self):
+        return db(self.filepath)
 
     async def admincheck(self, message):
         isadmin = await self.get_chat_member(message.chat.id, message.from_user.id)

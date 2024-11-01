@@ -15,7 +15,7 @@ class Command(BaseCommand):
             handler,
             {
                 "command": "ytdl",
-                "category": "core",
+                "category": "media",
                 "description": {
                     "content": "Download Youtube videos and music",
                     "usage": "ytdl [url]",
@@ -24,13 +24,13 @@ class Command(BaseCommand):
             },
         )
 
-    async def exec(self, M: Message, contex):
-        keys = list(contex[2].keys())
+    async def exec(self, M: Message, context):
+        keys = list(context[2].keys())
         if len(keys) > 0:
             if keys[0] == "video":
                 try:
                     title, path, length = YouTubeDownloader.video_dl(
-                        url=contex[2][keys[0]]
+                        url=context[2][keys[0]]
                     )
                     return await self.client.send_video(
                         M.chat_id,
@@ -46,7 +46,7 @@ class Command(BaseCommand):
             if keys[0] == "audio":
                 try:
                     title, path, length = YouTubeDownloader.audio_dl(
-                        url=contex[2][keys[0]]
+                        url=context[2][keys[0]]
                     )
                     return await self.client.send_audio(
                         M.chat_id,
@@ -83,5 +83,5 @@ class Command(BaseCommand):
             ]
         )
         await self.client.send_message(
-            M.chat_id, "What you want to download ?", buttons=btn
+            M.chat_id, "What you want to download ?", reply_markup=btn
         )

@@ -16,7 +16,7 @@ class Command(BaseCommand):
             handler,
             {
                 "command": "whatanime",
-                "category": "core",
+                "category": "anime",
                 "description": {"content": "Identify the anime from a provided image."},
                 "exp": 1,
             },

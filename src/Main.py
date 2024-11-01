@@ -15,6 +15,7 @@ api_id = config("APP_ID", default=None, cast=int)
 api_hash = config("API_HASH", default=None)
 bot_token = config("BOT_TOKEN", default=None)
 prefix = config("PREFIX", default=None)
+filepath = config("FILEPATH", default="databse.json")
 
 
 Bot = SuperClient(
@@ -22,6 +23,7 @@ Bot = SuperClient(
     api_id=api_id,
     api_hash=api_hash,
     bot_token=bot_token,
+    filepath=filepath,
     prefix=prefix,
     owner_id=0,
 )

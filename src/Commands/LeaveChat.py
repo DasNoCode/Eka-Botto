@@ -10,7 +10,7 @@ class Command(BaseCommand):
             handler,
             {
                 "command": "hi",
-                "category": "core",
+                "category": "chat",
                 "description": {"content": "Say hello to the bot"},
                 "exp": 1,
             },

@@ -12,7 +12,7 @@ class Command(BaseCommand):
             handler,
             {
                 "command": "igdl",
-                "category": "core",
+                "category": "media",
                 "description": {"content": "Download the Instagram reels and photo."},
                 "exp": 1,
             },

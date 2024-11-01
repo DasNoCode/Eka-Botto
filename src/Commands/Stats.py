@@ -14,7 +14,7 @@ class Command(BaseCommand):
             handler,
             {
                 "command": "stats",
-                "category": "core",
+                "category": "utility",
                 "description": {"content": "Get the info about the server"},
                 "exp": 1,
             },
