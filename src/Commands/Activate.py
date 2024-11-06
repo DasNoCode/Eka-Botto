@@ -26,7 +26,7 @@ class Command(BaseCommand):
                     [
                         InlineKeyboardButton(
                             "Captcha",
-                            callback_data=f"/activate --cpatcha={True}",
+                            callback_data=f"/activate --captcha={True}",
                         )
                     ],
                     [
@@ -41,21 +41,24 @@ class Command(BaseCommand):
                 M.chat_id, "What you want to activate ?", reply_markup=btn
             )
         keys = list(context[2].keys())
-
-        if keys[0] is "captcha":
+        if keys[0] == "captcha":
             all_captcha = self.client.db.Chat.get_all_captchas()
 
             if M.chat_id in all_captcha:
-                return
+                return await self.client.send_message(
+                    M.chat_id, f"Captcha is already activated in {M.chat_title}"
+                )
 
-            self.client.db.Chat.add_chat_id_in_event(M.chat_id)
-            await self.client.send_message(
+            self.client.db.Chat.add_chat_id_in_captcha(M.chat_id)
+            return await self.client.send_message(
                 M.chat_id, f"Captcha has been activated in {M.chat_title}"
             )
 
         all_events = self.client.db.Chat.get_all_events()
         if M.chat_id in all_events:
-            return
+            return await self.client.send_message(
+                M.chat_id, f"Event is already activated in {M.chat_title}"
+            )
         self.client.db.Chat.add_chat_id_in_event(M.chat_id)
         await self.client.send_message(
             M.chat_id, f"Event has been activated in {M.chat_title}"

@@ -106,6 +106,5 @@ class User:
         # Use the current time if time is None
         time = time if time is not None else datetime.now().time()
 
-        print("Updating AFK status:", is_afk)
         user["afk"] = {"is_afk": is_afk, "afk_reason": afk_reason, "time": time}
         self.update_user(user_id, user)

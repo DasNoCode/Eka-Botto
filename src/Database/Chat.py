@@ -7,28 +7,44 @@ class Chat:
 
     def get_all_events(self):
         chat = self.__db.get(self.query.chat.exists())
-        return chat["events"]
+        return chat["chat"]["events"]
 
     def get_all_captchas(self):
         chat = self.__db.get(self.query.chat.exists())
-        return chat["captchas"]
+        return chat["chat"]["captchas"]
 
     def add_chat_id_in_captcha(self, chat_id):
-        if chat_id in self.chat_data["captcha"]:
-            return
-        self.chat_data["captcha"].append(chat_id)
+        captchas = self.get_all_captchas()
+        if chat_id not in captchas:
+            captchas.append(chat_id)
+            self.__db.update(
+                {"chat": {"events": self.get_all_events(), "captchas": captchas}},
+                self.query.chat.exists(),
+            )
 
     def remove_chat_id_from_captcha(self, chat_id):
-        if chat_id not in self.chat_data["captcha"]:
-            return
-        self.chat_data["captcha"].remove(chat_id)
+        captchas = self.get_all_captchas()
+        if chat_id in captchas:
+            captchas.remove(chat_id)
+            self.__db.update(
+                {"chat": {"events": self.get_all_events(), "captchas": captchas}},
+                self.query.chat.exists(),
+            )
 
     def add_chat_id_in_event(self, chat_id):
-        if chat_id in self.chat_data["events"]:
-            return
-        self.chat_data["events"].append(chat_id)
+        events = self.get_all_events()
+        if chat_id not in events:
+            events.append(chat_id)
+            self.__db.update(
+                {"chat": {"events": events, "captchas": self.get_all_captchas()}},
+                self.query.chat.exists(),
+            )
 
     def remove_chat_id_from_events(self, chat_id):
-        if chat_id not in self.chat_data["events"]:
-            return
-        self.chat_data["events"].remove(chat_id)
+        events = self.get_all_events()
+        if chat_id in events:
+            events.remove(chat_id)
+            self.__db.update(
+                {"chat": {"events": events, "captchas": self.get_all_captchas()}},
+                self.query.chat.exists(),
+            )
