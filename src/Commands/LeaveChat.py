@@ -11,8 +11,9 @@ class Command(BaseCommand):
             {
                 "command": "hi",
                 "category": "chat",
+                "AdminOnly": False,
+                "OwnerOnly": True,
                 "description": {"content": "Say hello to the bot"},
-                "exp": 1,
             },
         )
 

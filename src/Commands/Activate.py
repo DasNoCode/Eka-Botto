@@ -13,8 +13,9 @@ class Command(BaseCommand):
             {
                 "command": "activate",
                 "category": "core",
+                "AdminOnly": True,
+                "OwnerOnly": False,
                 "description": {"content": "Activate captcha and event"},
-                "exp": 1,
             },
         )
 

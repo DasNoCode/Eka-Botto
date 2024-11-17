@@ -15,8 +15,9 @@ class Command(BaseCommand):
             {
                 "command": "stats",
                 "category": "utility",
+                "AdminOnly": False,
+                "OwnerOnly": True,
                 "description": {"content": "Get the info about the server"},
-                "exp": 1,
             },
         )
 

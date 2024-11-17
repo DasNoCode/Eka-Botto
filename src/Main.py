@@ -15,6 +15,7 @@ api_id = config("APP_ID", default=None, cast=int)
 api_hash = config("API_HASH", default=None)
 bot_token = config("BOT_TOKEN", default=None)
 prefix = config("PREFIX", default=None)
+owner_id = config("OWNER_ID", default=None)
 filepath = config("FILEPATH", default="databse.json")
 
 
@@ -25,7 +26,7 @@ Bot = SuperClient(
     bot_token=bot_token,
     filepath=filepath,
     prefix=prefix,
-    owner_id=0,
+    owner_id=owner_id,
 )
 
 sys.path.insert(0, os.getcwd())

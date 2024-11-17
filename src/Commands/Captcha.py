@@ -19,40 +19,46 @@ class Command(BaseCommand):
             {
                 "command": "captcha",
                 "category": "core",
+                "AdminOnly": True,
+                "OwnerOnly": False,
                 "description": {"content": "Prevents bots from joining"},
-                "exp": 1,
             },
         )
         self.captcha_code = None
         self.captcha_message_id = None
 
     async def exec(self, M: Message, context):
-        if not M.isAdmin:
-            if not M.is_callback:
-                return
 
         user_id = int(context[2].get("user_id"))
-        if user_id != M.sender.user_id:
-            return await self.client.answer_callback_query(
-                callback_query_id=M.message_id,
-                text="This Captcha isn't for you!",
-                show_alert=True,
-            )
+        user = await self.client.get_users(user_id)
+
+        if not M.is_callback:
+            return
+
+        print(M.isAdmin)
+        if not M.isAdmin:
+            print(M.sender.user_id)
+            if user_id != M.sender.user_id:
+                return await self.client.answer_callback_query(
+                    callback_query_id=M.message_id,
+                    text="This Captcha isn't for you!",
+                    show_alert=True,
+                )
 
         if context[2].get("code"):
             if context[2].get("code") == self.captcha_code:
                 await self.client.restrict_chat_member(
                     M.chat_id,
-                    M.sender.user_id,
+                    user_id,
                     ChatPermissions(
                         can_send_messages=True, can_send_media_messages=True
                     ),
                 )
                 await self.client.send_message(
-                    M.chat_id, f"@{M.sender.user_name}, __welcome to the chat.__"
+                    M.chat_id, f"@{user.username}, __welcome to the chat.__"
                 )
             else:
-                await self.client.ban_chat_member(M.chat_id, M.sender.user_id)
+                await self.client.ban_chat_member(M.chat_id, user_id)
 
             await self.client.delete_messages(M.chat_id, self.captcha_message_id)
             return
@@ -72,7 +78,7 @@ class Command(BaseCommand):
             M.chat_id,
             "Captcha.png",
             caption="__Here is your Captcha! Solve it within 1 minute.__",
-            buttons=InlineKeyboardMarkup(
+            reply_markup=InlineKeyboardMarkup(
                 [
                     [
                         InlineKeyboardButton(

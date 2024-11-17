@@ -13,17 +13,13 @@ class Command(BaseCommand):
             {
                 "command": "promote",
                 "category": "chat",
+                "AdminOnly": True,
+                "OwnerOnly": False,
                 "description": {"content": "Promote the user to Admin of chat"},
-                "exp": 1,
             },
         )
 
     async def exec(self, M: Message, contex):
-
-        # if not M.isAdmin:
-        #     return await self.client.send_message(
-        #         M.chat_id, f"__@{M.sender.user_name} you don't have rights to do so!__."
-        #     )
 
         if M.reply_to_message:
             user_name = M.sender.user_name

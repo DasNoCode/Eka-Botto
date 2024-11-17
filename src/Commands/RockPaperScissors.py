@@ -15,6 +15,8 @@ class Command(BaseCommand):
             {
                 "command": "rps",
                 "category": "game",
+                "AdminOnly": False,
+                "OwnerOnly": False,
                 "description": {"content": "Play Rock-Paper-Scissors with the bot."},
                 "exp": 1,
             },

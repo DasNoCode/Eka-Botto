@@ -15,7 +15,7 @@ class MessageHandler:
         self.__client = client
 
     async def handler(self, M: Message):
-        contex = self.parse_args(M.message)
+        context = self.parse_args(M.message)
 
         if M.message is None:
             return
@@ -72,17 +72,33 @@ class MessageHandler:
                 M.chat_id, f"__Enter a command following {self.__client.prifix}__"
             )
 
-        cmd = self.commands[contex[0]] if contex[0] in self.commands.keys() else None
+        cmd = self.commands[context[0]] if context[0] in self.commands.keys() else None
 
         if not cmd:
             return await self.__client.send_message(
                 M.chat_id, "__Command does not available!!__"
             )
 
+        if cmd.config.OwnerOnly:
+            if str(M.sender.user_id) != self.__client.owner_id:
+                return await self.__client.send_message(
+                    M.chat_id, "__This command can only be used by the owner!!__"
+                )
+
+        if cmd.config.AdminOnly:
+            if not M.isAdmin:
+                return await self.__client.send_message(
+                    M.chat_id, "__This command can only be used by an admin!!__"
+                )
+
         self.__client.log.info(
-            f"[CMD]: {self.__client.prifix}{contex[0]} from {M.chat_type} by {M.sender.user_name}({"ADMIN" if M.isAdmin else "NOT ADMIN"})"
+            f"[CMD]: {self.__client.prifix}{context[0]} from {M.chat_type} by {M.sender.user_name} "
+            f"({'ADMIN' if M.isAdmin else 'NOT ADMIN'})"
         )
-        await cmd.exec(M, contex)
+        if hasattr(cmd.config, "exp") and cmd.config.exp:
+            self.__client.db.User.add_experience(M.sender.user_id, cmd.config.exp)
+
+        await cmd.exec(M, context)
 
     def load_commands(self, folder_path):
         for filename in os.listdir(folder_path):

@@ -16,6 +16,8 @@ class Command(BaseCommand):
             {
                 "command": "ytdl",
                 "category": "media",
+                "AdminOnly": False,
+                "OwnerOnly": False,
                 "description": {
                     "content": "Download Youtube videos and music",
                     "usage": "ytdl [url]",

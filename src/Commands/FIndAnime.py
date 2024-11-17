@@ -17,6 +17,8 @@ class Command(BaseCommand):
             {
                 "command": "whatanime",
                 "category": "anime",
+                "AdminOnly": False,
+                "OwnerOnly": False,
                 "description": {"content": "Identify the anime from a provided image."},
                 "exp": 1,
             },

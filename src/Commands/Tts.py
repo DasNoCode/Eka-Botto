@@ -2,12 +2,12 @@ import os
 import re
 
 from gtts import gTTS
+from gtts.lang import tts_langs
 
 from Structures.Command.BaseCommand import BaseCommand
 from Structures.Message import Message
 
 
-# not ready
 class Command(BaseCommand):
 
     def __init__(self, client, handler):
@@ -15,38 +15,44 @@ class Command(BaseCommand):
             client,
             handler,
             {
-                "command": "voice",
+                "command": "tts",
                 "category": "media",
+                "AdminOnly": False,
+                "OwnerOnly": False,
                 "description": {"content": "Convert text to voice"},
                 "exp": 1,
             },
         )
-        self.lang = "ja"
 
     async def exec(self, M: Message, context):
+        try:
+            if len(context[3]) > 1:
+                lang = context[3].pop(0)
+                text = " ".join(context[3])
+                print("msg", lang, text)
+            elif M.reply_to_message:
+                lang = context[3].pop(0)
+                text = M.reply_to_message.text
+                print("rmsg", lang, text)
+            else:
+                return await self.client.send_message(
+                    M.chat_id, "__Reply to a message or send text__"
+                )
+            if lang not in tts_langs():
+                return await self.client.send_message(
+                    M.chat_id, "__Given language is not suported!__"
+                )
 
-        print(context)
-        text = M.message.split()
-        if len(context) > 2 and context[2].get("lang"):
-            self.lang = context[2].get("lang")
-            print(self.lang)
-
-        if len(text) > 1:
-            msg = " ".join(text[1:])
-        elif M.reply_to_message and len(text) == 1:
-            msg = M.reply_to_message.text
-        else:
+            filename = re.sub(r"[^a-zA-Z0-9]", "_", text)[:15]
+            filepath = f"{filename}.mp3"
+            tts = gTTS(text, lang=lang)
+            tts.save(filepath)
+        except Exception as e:
             return await self.client.send_message(
-                M.chat_id, "__Reply to a message or send text__"
+                M.chat_id, "__Something went wrong!__"
             )
 
-        filename = re.sub(r"[^a-zA-Z0-9]", "_", msg)[:15]
-        filepath = f"{filename}.mp3"
-
-        tts = gTTS(msg, lang=self.lang)
-        tts.save(filepath)
-
         await self.client.send_voice(
-            M.chat_id, voice=filepath, caption=f"__Language : {self.lang}__"
+            M.chat_id, voice=filepath, caption=f"__Language : {lang}__"
         )
         os.remove(filepath)

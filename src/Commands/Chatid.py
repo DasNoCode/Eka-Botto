@@ -11,6 +11,8 @@ class Command(BaseCommand):
             {
                 "command": "chatid",
                 "category": "core",
+                "AdminOnly": False,
+                "OwnerOnly": False,
                 "description": {"content": "Give id of the chat"},
                 "exp": 1,
             },
