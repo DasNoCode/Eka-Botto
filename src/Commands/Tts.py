@@ -20,7 +20,6 @@ class Command(BaseCommand):
                 "AdminOnly": False,
                 "OwnerOnly": False,
                 "description": {"content": "Convert text to voice"},
-                "exp": 1,
             },
         )
 

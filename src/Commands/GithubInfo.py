@@ -16,7 +16,6 @@ class Command(BaseCommand):
                 "AdminOnly": False,
                 "OwnerOnly": False,
                 "description": {"content": "Get GitHub user information"},
-                "exp": 1,
             },
         )
 

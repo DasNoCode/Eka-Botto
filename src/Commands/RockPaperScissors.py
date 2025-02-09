@@ -18,7 +18,6 @@ class Command(BaseCommand):
                 "AdminOnly": False,
                 "OwnerOnly": False,
                 "description": {"content": "Play Rock-Paper-Scissors with the bot."},
-                "exp": 1,
             },
         )
         self.reset_game()

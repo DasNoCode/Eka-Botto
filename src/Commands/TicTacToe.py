@@ -18,7 +18,6 @@ class Command(BaseCommand):
                 "AdminOnly": False,
                 "OwnerOnly": False,
                 "description": {"content": "Play Tic-Tac-Toe with the bot"},
-                "exp": 1,
             },
         )
         self.user_id = None

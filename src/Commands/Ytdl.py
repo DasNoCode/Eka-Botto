@@ -22,7 +22,6 @@ class Command(BaseCommand):
                     "content": "Download Youtube videos and music",
                     "usage": "ytdl [url]",
                 },
-                "exp": 1,
             },
         )
 

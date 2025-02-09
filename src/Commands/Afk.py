@@ -18,7 +18,6 @@ class Command(BaseCommand):
                 "description": {
                     "content": "Set yourself to afk.When marked as AFK, any mentions will be replied to with a message to say you're not available!And that mentioned will notify you by your Assistant."
                 },
-                "exp": 1,
             },
         )
 

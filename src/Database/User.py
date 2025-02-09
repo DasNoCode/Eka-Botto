@@ -14,6 +14,7 @@ class User:
         return users_data["users"]
 
     def add_user(self, user_data):
+
         users_list = self.get_all_users()
         if any(user["user_id"] == user_data["user_id"] for user in users_list):
             return
@@ -25,6 +26,8 @@ class User:
                 "afk_reason": user_data.get("afk", {}).get("afk_reason", ""),
                 "time": user_data.get("afk", {}).get("time", ""),
             },
+            "lvl": user_data.get("lvl", 0),
+            "last-lvl": user_data.get("last-lvl", 0),
             "exp": user_data.get("exp", 0),
             "tic_tac_toe": user_data.get("tic_tac_toe", 0),
             "rps": user_data.get("rps", 0),
@@ -68,11 +71,13 @@ class User:
         listt_without_theuser.append(recursive_update(user, updates))
         self.__db.update({"users": listt_without_theuser}, self.query.users.exists())
 
-    def add_experience(self, user_id, amount):
+    def lvl_garined(self, user_id, exp, last_lvl, lvl):
         user = self.get_user(user_id)
         if not user:
             return
-        user["exp"] += amount
+        user["exp"] = exp
+        user["last_lvl"] = last_lvl
+        user["lvl"] = lvl
         self.update_user(user_id, user)
 
     def increment_tic_tac_toe(self, user_id):

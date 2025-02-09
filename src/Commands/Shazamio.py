@@ -19,7 +19,6 @@ class Command(BaseCommand):
                 "AdminOnly": False,
                 "OwnerOnly": False,
                 "description": {"content": "Identify the music playing around you"},
-                "exp": 1,
             },
         )
 

@@ -1,7 +1,11 @@
 import importlib.util
+import math
 import os
+import random
 import re
 from datetime import datetime
+
+from DiscordLevelingCard import RankCard
 
 from Structures.Client import SuperClient
 from Structures.Message import Message
@@ -10,6 +14,16 @@ from Structures.Message import Message
 class MessageHandler:
 
     commands = {}
+    ranks = [
+        (1, "Novice"),
+        (5, "Apprentice"),
+        (10, "Warrior"),
+        (20, "Elite"),
+        (30, "Master"),
+        (50, "Grandmaster"),
+        (75, "Legendary"),
+        (100, "Mythic"),
+    ]
 
     def __init__(self, client: SuperClient):
         self.__client = client
@@ -95,9 +109,54 @@ class MessageHandler:
             f"[CMD]: {self.__client.prifix}{context[0]} from {M.chat_type} by {M.sender.user_name} "
             f"({'ADMIN' if M.isAdmin else 'NOT ADMIN'})"
         )
-        if hasattr(cmd.config, "exp") and cmd.config.exp:
-            self.__client.db.User.add_experience(M.sender.user_id, cmd.config.exp)
-
+        def get_rank(level):
+            rank = "Beginner"
+            for lvl, title in ranks:
+                if level >= lvl:
+                    rank = title
+                else:
+                    break
+            return rank
+        
+        # Assuming `client`, `M`, and `vac_api` are defined elsewhere in your code
+        result = client.db.User.get_user(M.sender.user_id)
+        exp = result["exp"]
+        lvl = result["lvl"]
+        last_lvl = result["last-lvl"]
+        current_rank = result.get("rank", "Beginner")
+        
+        exp_gained = random.randint(1, 10)
+        exp += exp_gained
+        lvl = 0.1 * (math.sqrt(exp))
+        
+        new_rank = get_rank(int(lvl))
+        
+        # Create a rank card using DiscordLevelingCard
+        rank_card = RankCard(
+            username=M.sender.user_name,
+            avatar_url=M.sender.avatar_url,
+            current_xp=exp,
+            next_level_xp=int((lvl + 1) ** 2 * 10),
+            previous_level_xp=int(lvl ** 2 * 10),
+            level=int(lvl),
+            rank=result.get("rank_position", 1)
+        )
+        
+        # Generate the rank card image
+        card = await rank_card.generate()
+        
+        # Send the level-up message with the rank card
+        await client.send_message(M.chat_id, f"@{M.sender.user_name} has leveled up to level {int(lvl)} ({new_rank})!", file=card)
+        
+        # Update the user's rank if it has changed
+        if new_rank != current_rank:
+            client.db.User.update_rank(M.sender.user_id, new_rank)
+        
+        # Update the user's level and experience in the database
+        client.db.User.lvl_garined(M.sender.user_id, exp, last_lvl, lvl)
+        
+        # Add the chat ID to the bot's database
+        client.db.Botdb.add_chat_id_in_chat_id(M.chat_id)
         await cmd.exec(M, context)
 
     def load_commands(self, folder_path):

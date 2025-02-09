@@ -20,7 +20,6 @@ class Command(BaseCommand):
                 "AdminOnly": False,
                 "OwnerOnly": False,
                 "description": {"content": "Identify the anime from a provided image."},
-                "exp": 1,
             },
         )
         self.tracemoe = tracemoepy.tracemoe.TraceMoe()

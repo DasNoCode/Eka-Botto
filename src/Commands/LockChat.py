@@ -21,11 +21,10 @@ class Command(BaseCommand):
 
     async def exec(self, M: Message, contex):
 
-        if (
-            self.M.chat_info.permissions.get("can_send_messages")
-            and self.M.chat_info.permissions.get("can_send_media_messages")
-            and self.M.chat_info.permissions.get("can_send_other_messages")
-        ):
+        chat_id = M.chat_id
+
+        if M.chat_info.permissions.can_send_messages:
+            self.client.db.Chat.add_Chat_permissions(chat_id, M.chat_info.permissions)
             await self.client.set_chat_permissions(
                 chat_id=M.chat_id,
                 permissions=ChatPermissions(
@@ -37,18 +36,26 @@ class Command(BaseCommand):
                 ),
             )
             return await self.client.send_message(
-                M.chat_id, f"__{M.chat_title} have been muted by @{M.sender.user_name}."
+                M.chat_id,
+                f"__@{M.chat_title} have been muted by @{M.sender.user_name}.",
             )
+        chatpermissions = self.client.db.Chat.get_all_chatpermissions()
         await self.client.set_chat_permissions(
-            chat_id=M.chat_id,
+            chat_id,
             permissions=ChatPermissions(
-                can_send_messages=True,
-                can_send_media_messages=True,
-                can_send_polls=True,
-                can_send_other_messages=True,
-                can_add_web_page_previews=True,
+                can_send_messages=chatpermissions[f"{chat_id}"]["can_send_messages"],
+                can_send_media_messages=chatpermissions[f"{chat_id}"][
+                    "can_send_media_messages"
+                ],
+                can_send_polls=chatpermissions[f"{chat_id}"]["can_send_polls"],
+                can_send_other_messages=chatpermissions[f"{chat_id}"][
+                    "can_send_other_messages"
+                ],
+                can_add_web_page_previews=chatpermissions[f"{chat_id}"][
+                    "can_add_web_page_previews"
+                ],
             ),
         )
         return await self.client.send_message(
-            M.chat_id, f"__{M.chat_title} have been unmuted by @{M.sender.user_name}."
+            chat_id, f"__@{M.chat_title} have been unmuted by @{M.sender.user_name}."
         )

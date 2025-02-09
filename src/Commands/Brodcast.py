@@ -9,15 +9,17 @@ class Command(BaseCommand):
             client,
             handler,
             {
-                "command": "hi",
+                "command": "brodcast",
                 "category": "core",
                 "AdminOnly": False,
-                "OwnerOnly": False,
+                "OwnerOnly": True,
                 "description": {"content": "Say hello to the bot"},
             },
         )
 
     async def exec(self, M: Message, contex):
-        await self.client.send_message(
-            M.chat_id, f"Hey, @{M.sender.user_name} how is your day today?"
-        )
+        chat_ids = self.client.db.Botdb.get_all_chat_id()
+        for chat_id in chat_ids:
+            await self.client.send_message(
+                chat_id, f"__**BRODCAST**__\n{M.reply_to_message.text}"
+            )

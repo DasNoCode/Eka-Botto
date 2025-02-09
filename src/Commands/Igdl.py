@@ -16,7 +16,6 @@ class Command(BaseCommand):
                 "AdminOnly": False,
                 "OwnerOnly": False,
                 "description": {"content": "Download the Instagram reels and photo."},
-                "exp": 1,
             },
         )
 
