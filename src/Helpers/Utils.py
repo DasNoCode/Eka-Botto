@@ -5,10 +5,12 @@ import random
 import re
 import shutil
 import tempfile
-
+import imgbbpy
 import requests
 from bs4 import BeautifulSoup
-from moviepy.editor import VideoFileClip
+from moviepy.video.io.VideoFileClip import VideoFileClip
+from decouple import config
+
 
 
 class Utils:
@@ -155,3 +157,16 @@ class Utils:
             f"{int(seconds)} second{'s' if seconds != 1 else ''}",
         ]
         return ", ".join(part for part in parts if not part.startswith("0"))
+
+
+    @staticmethod
+    def img_to_url(img_path):
+     client = imgbbpy.SyncClient(config("IMGBB_KEY", default=None))
+     if client:
+      image = client.upload(file=img_path)
+      print(image)
+      return image.url
+     
+    
+
+

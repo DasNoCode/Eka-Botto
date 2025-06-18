@@ -10,23 +10,26 @@ from Handler.MessageHandler import MessageHandler
 from Structures.Client import SuperClient
 from Structures.Message import Message
 
-name = config("NAME", default=None)
+bot_name = config("BOT_NAME", default=None)
 api_id = config("APP_ID", default=None, cast=int)
 api_hash = config("API_HASH", default=None)
 bot_token = config("BOT_TOKEN", default=None)
 prefix = config("PREFIX", default=None)
 owner_id = config("OWNER_ID", default=None)
 filepath = config("FILEPATH", default="databse.json")
+bot_name_ASCII = config("BOT_NAME_ASCII", default="Bot is Online!")
+
 
 
 Bot = SuperClient(
-    name=name,
+    name=bot_name,
     api_id=api_id,
     api_hash=api_hash,
     bot_token=bot_token,
     filepath=filepath,
     prefix=prefix,
-    owner_id=owner_id,
+    owner_id=owner_id
+
 )
 
 sys.path.insert(0, os.getcwd())
@@ -62,5 +65,5 @@ async def new_member(client: SuperClient, message: Message):
 
 
 if __name__ == "__main__":
-    Bot.log.info("Bot has started!! 🤖")
+    Bot.log.info(bot_name_ASCII)
     Bot.run()

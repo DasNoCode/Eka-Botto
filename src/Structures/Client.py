@@ -15,7 +15,7 @@ class SuperClient(Client):
         bot_token: str,
         filepath: str,
         prefix: str,
-        owner_id: int,
+        owner_id: int
     ):
         super().__init__(
             name=name, api_id=api_id, api_hash=api_hash, bot_token=bot_token
@@ -25,6 +25,7 @@ class SuperClient(Client):
         self.filepath = filepath
         self.utils = Utils()
         self.owner_id = owner_id
+
 
     @property
     def db(self):

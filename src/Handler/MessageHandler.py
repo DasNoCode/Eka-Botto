@@ -58,29 +58,28 @@ class MessageHandler:
                 M.chat_id,
                 f"__@{M.sender.user_name} nice to see you again!__",
             )
-
         if mentioned_is_afk["is_afk"] and replied_is_afk["is_afk"]:
             return await self.__client.send_message(
                 M.chat_id,
-                f"__@{M.sender.user_name} @{mentioned_user.user_name}, @{replied_user.user_name} are currently offline \n* @{replied_user.user_name}'s Reason* : {replied_is_afk["afk_reason"]}\n@{mentioned_user.user_name}'s Reason* : {mentioned_is_afk["afk_reason"]}__",
+                f"__@{M.sender.user_name} @{mentioned_user.user_name} is currently offline.\n**Reason** : {mentioned_is_afk.get('afk_reason', 'None')}__",
             )
         if mentioned_is_afk["is_afk"]:
             await self.__client.send_message(
                 M.chat_id,
-                f"__@{M.sender.user_name} @{mentioned_user.user_name} is currently offline.\n**Reason** : {mentioned_is_afk.get("afk_reason", "None")}__",
+                f"__@{M.sender.user_name} @{mentioned_user.user_name} is currently offline.\n**Reason** : {mentioned_is_afk.get('afk_reason', 'None')}__",
             )
         elif replied_is_afk["is_afk"]:
             await self.__client.send_message(
                 M.chat_id,
-                f"__@{M.sender.user_name} @{replied_user.user_name} is currently offline.\n**Reason** : {replied_is_afk.get("afk_reason", "None")}__",
+                f"__@{M.sender.user_name} @{replied_user.user_name} is currently offline.\n**Reason** : {replied_is_afk.get('afk_reason', 'None')}__",
             )
-
-        if not isCommand:
+        
+        if not isCommand:  
             self.__client.log.info(
-                f"[MSG]: From {M.chat_type} by {M.sender.user_name}({"ADMIN" if M.isAdmin else "NOT ADMIN"})"
+                f"[MSG]: From {M.chat_type} by {M.sender.user_name} ({'ADMIN' if M.isAdmin else 'NOT ADMIN'})"
             )
             return
-
+        
         if M.message is self.__client.prifix:
             return await self.__client.send_message(
                 M.chat_id, f"__Enter a command following {self.__client.prifix}__"
@@ -92,7 +91,6 @@ class MessageHandler:
             return await self.__client.send_message(
                 M.chat_id, "__Command does not available!!__"
             )
-
         if cmd.config.OwnerOnly:
             if str(M.sender.user_id) != self.__client.owner_id:
                 return await self.__client.send_message(
@@ -111,54 +109,70 @@ class MessageHandler:
         )
         def get_rank(level):
             rank = "Beginner"
-            for lvl, title in ranks:
+            for lvl, title in self.ranks:
                 if level >= lvl:
                     rank = title
                 else:
                     break
             return rank
         
-        # Assuming `client`, `M`, and `vac_api` are defined elsewhere in your code
-        result = client.db.User.get_user(M.sender.user_id)
+        
+        # Get user data
+        result = self.__client.db.User.get_user(M.sender.user_id)
         exp = result["exp"]
         lvl = result["lvl"]
-        last_lvl = result["last-lvl"]
         current_rank = result.get("rank", "Beginner")
         
-        exp_gained = random.randint(1, 10)
+        # Gain XP
+        exp_gained = random.randint(5, 15)
         exp += exp_gained
-        lvl = 0.1 * (math.sqrt(exp))
         
-        new_rank = get_rank(int(lvl))
+        # Level up every 100 XP (simple logic)
+        xp_per_level = 100
+        new_lvl = exp // xp_per_level
         
-        # Create a rank card using DiscordLevelingCard
+        # Check for level-up
+        leveled_up = new_lvl > lvl
+        last_lvl = lvl
+        lvl = new_lvl
+        
+        
+        # Optional: update rank based on level
+        new_rank = get_rank(lvl)
+        
+        # Create a rank card
         rank_card = RankCard(
             username=M.sender.user_name,
             avatar_url=M.sender.avatar_url,
             current_xp=exp,
-            next_level_xp=int((lvl + 1) ** 2 * 10),
-            previous_level_xp=int(lvl ** 2 * 10),
-            level=int(lvl),
+            next_level_xp=(lvl + 1) * xp_per_level,
+            previous_level_xp=lvl * xp_per_level,
+            level=lvl,
             rank=result.get("rank_position", 1)
         )
         
         # Generate the rank card image
         card = await rank_card.generate()
         
-        # Send the level-up message with the rank card
-        await client.send_message(M.chat_id, f"@{M.sender.user_name} has leveled up to level {int(lvl)} ({new_rank})!", file=card)
-        
+        # Send message only if leveled up (optional)
+        if leveled_up:
+            await self.__client.send_message(
+                M.chat_id,
+                f"@{M.sender.user_name} leveled up to level {lvl} ({new_rank})!",
+                file=card
+            )
+
         # Update the user's rank if it has changed
         if new_rank != current_rank:
-            client.db.User.update_rank(M.sender.user_id, new_rank)
+            self.client.db.User.update_rank(M.sender.user_id, new_rank)
         
         # Update the user's level and experience in the database
-        client.db.User.lvl_garined(M.sender.user_id, exp, last_lvl, lvl)
+        self.client.db.User.lvl_garined(M.sender.user_id, exp, last_lvl, lvl)
         
         # Add the chat ID to the bot's database
-        client.db.Botdb.add_chat_id_in_chat_id(M.chat_id)
+        self.client.db.Botdb.add_chat_id_in_chat_id(M.chat_id)
         await cmd.exec(M, context)
-
+    
     def load_commands(self, folder_path):
         for filename in os.listdir(folder_path):
             if filename.endswith(".py"):
@@ -196,3 +210,6 @@ class MessageHandler:
             }
 
             return (cmd, text, flags, args, raw)
+    
+    def load_apis():
+        pass

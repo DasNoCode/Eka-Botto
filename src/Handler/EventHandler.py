@@ -63,8 +63,4 @@ class EventHandler:
                 f"__@{self.message.left_chat_member.username} has left the Chat.__",
             )
         elif str(self.message.service).split(".")[-1] == "PINNED_MESSAGE":
-            await self.__client.send_message(
-                self.message.chat.id,
-                f"__A new message has been pinned by @{
-                    self.message.from_user.username}./nCheck now !__",
-            )
+            await self.__client.send_message(self.message.chat.id, f"__A new message has been pinned by @{self.message.from_user.username}./nCheck now !__",)
