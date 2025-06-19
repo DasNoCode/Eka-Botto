@@ -30,7 +30,7 @@ class Command(BaseCommand):
             await self.client.send_photo(
                 M.chat_id,
                 photo=f"src/downloads/{M.reply_to_message.replied_user.user_profile_id}.jpg",
-                caption=f"__Username__: @{M.reply_to_message.replied_user.user_name}\n__UserID__: {M.reply_to_message.replied_user.user_id}",
+                caption=f"__Username__: @{M.reply_to_message.replied_user.user_name}\n__UserID__: {M.reply_to_message.replied_user.user_id}",ttl_seconds=120
             )
             return os.remove(
                 f"src/downloads/{M.reply_to_message.replied_user.user_profile_id}.jpg"
@@ -45,7 +45,7 @@ class Command(BaseCommand):
             await self.client.send_photo(
                 M.chat_id,
                 photo=f"src/downloads/{mentioned_user.user_profile_id}.jpg",
-                caption=f"__Username__: @{mentioned_user.user_name}\n__UserID__: {mentioned_user.user_id}",
+                caption=f"__Username__: @{mentioned_user.user_name}\n__UserID__: {mentioned_user.user_id}",ttl_seconds=120
             )
             return os.remove(f"src/downloads/{mentioned_user.user_profile_id}.jpg")
         await self.client.download_media(
@@ -55,6 +55,6 @@ class Command(BaseCommand):
         await self.client.send_photo(
             M.chat_id,
             photo=f"src/downloads/{M.sender.user_profile_id}.jpg",
-            caption=f"__Username__: @{M.sender.user_name}\n__UserID__: {M.sender.user_id}",
+            caption=f"__Username__: @{M.sender.user_name}\n__UserID__: {M.sender.user_id}",ttl_seconds=120
         )
         os.remove(f"src/downloads/{M.sender.user_profile_id}.jpg")

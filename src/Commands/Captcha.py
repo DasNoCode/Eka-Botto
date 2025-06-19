@@ -35,7 +35,6 @@ class Command(BaseCommand):
         if not M.is_callback:
             return
 
-        print(M.isAdmin)
         if not M.isAdmin:
             print(M.sender.user_id)
             if user_id != M.sender.user_id:

@@ -28,7 +28,7 @@ class User:
             },
             "lvl": user_data.get("lvl", 0),
             "last-lvl": user_data.get("last-lvl", 0),
-            "exp": user_data.get("exp", 0),
+            "xp": user_data.get("xp", 0),
             "tic_tac_toe": user_data.get("tic_tac_toe", 0),
             "rps": user_data.get("rps", 0),
             "ban": {
@@ -71,11 +71,11 @@ class User:
         listt_without_theuser.append(recursive_update(user, updates))
         self.__db.update({"users": listt_without_theuser}, self.query.users.exists())
 
-    def lvl_garined(self, user_id, exp, last_lvl, lvl):
+    def lvl_garined(self, user_id, xp, last_lvl, lvl):
         user = self.get_user(user_id)
         if not user:
             return
-        user["exp"] = exp
+        user["xp"] = xp
         user["last_lvl"] = last_lvl
         user["lvl"] = lvl
         self.update_user(user_id, user)
@@ -106,9 +106,7 @@ class User:
         if not user:
             return
 
-        # Use an empty string if afk_reason is None
         afk_reason = afk_reason if afk_reason is not None else ""
-        # Use the current time if time is None
         time = time if time is not None else datetime.now().time()
 
         user["afk"] = {"is_afk": is_afk, "afk_reason": afk_reason, "time": time}

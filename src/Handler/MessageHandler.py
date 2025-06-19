@@ -4,7 +4,7 @@ import os
 import random
 import re
 from datetime import datetime
-
+from Helpers import Utils
 from DiscordLevelingCard import RankCard
 
 from Structures.Client import SuperClient
@@ -107,6 +107,7 @@ class MessageHandler:
             f"[CMD]: {self.__client.prifix}{context[0]} from {M.chat_type} by {M.sender.user_name} "
             f"({'ADMIN' if M.isAdmin else 'NOT ADMIN'})"
         )
+
         def get_rank(level):
             rank = "Beginner"
             for lvl, title in self.ranks:
@@ -116,20 +117,19 @@ class MessageHandler:
                     break
             return rank
         
-        
-        # Get user data
+        print("results:",cmd.config.OwnerOnly)
         result = self.__client.db.User.get_user(M.sender.user_id)
-        exp = result["exp"]
+        xp = result["xp"]
         lvl = result["lvl"]
         current_rank = result.get("rank", "Beginner")
         
         # Gain XP
-        exp_gained = random.randint(5, 15)
-        exp += exp_gained
+        xp_gained = random.randint(5, 15)
+        xp += xp_gained
         
         # Level up every 100 XP (simple logic)
         xp_per_level = 100
-        new_lvl = exp // xp_per_level
+        new_lvl = xp // xp_per_level
         
         # Check for level-up
         leveled_up = new_lvl > lvl
@@ -140,37 +140,48 @@ class MessageHandler:
         # Optional: update rank based on level
         new_rank = get_rank(lvl)
         
-        # Create a rank card
-        rank_card = RankCard(
-            username=M.sender.user_name,
-            avatar_url=M.sender.avatar_url,
-            current_xp=exp,
-            next_level_xp=(lvl + 1) * xp_per_level,
-            previous_level_xp=lvl * xp_per_level,
-            level=lvl,
-            rank=result.get("rank_position", 1)
-        )
-        
-        # Generate the rank card image
-        card = await rank_card.generate()
-        
-        # Send message only if leveled up (optional)
         if leveled_up:
-            await self.__client.send_message(
-                M.chat_id,
-                f"@{M.sender.user_name} leveled up to level {lvl} ({new_rank})!",
-                file=card
+            avatar_url = Utils.Utils.img_to_url(
+                await self.__client.download_media(
+                    M.sender.user_profile_id,
+                    file_name=f'downloads/{M.sender.user_profile_id}.jpg',
+                    ttl_seconds=120
+                )
             )
+        
+            rankcard_url = (
+                f"https://vacefron.nl/api/rankcard"
+                f"?username={M.sender.user_name}"
+                f"&avatar={avatar_url}"
+                f"&level={lvl}"
+                f"&rank={get_rank(lvl)}"
+                f"&currentxp={xp}"
+                f"&nextlevelxp={xp_per_level}"
+                f"&previouslevelxp={last_lvl}"
+                f"&custombg=https://media.discordapp.net/attachments/1022533781040672839/1026849383104397312/image0.jpg"
+                f"&xpcolor=00ffff"
+                f"&isboosting=false"
+                f"&circleavatar=true"
+            )
+        
+            await self.__client.send_photo(
+                M.chat_id,
+                photo=rankcard_url,
+                caption=f"@{M.sender.user_name} leveled up to level {lvl} ({new_rank})!",
+                
+
+            )
+
 
         # Update the user's rank if it has changed
         if new_rank != current_rank:
-            self.client.db.User.update_rank(M.sender.user_id, new_rank)
+            self.__client.db.User.update_rank(M.sender.user_id, new_rank)
         
-        # Update the user's level and experience in the database
-        self.client.db.User.lvl_garined(M.sender.user_id, exp, last_lvl, lvl)
+        # Update the user's level and xperience in the database
+        self.__client.db.User.lvl_garined(M.sender.user_id, xp, last_lvl, lvl)
         
         # Add the chat ID to the bot's database
-        self.client.db.Botdb.add_chat_id_in_chat_id(M.chat_id)
+        self.__client.db.Botdb.add_chat_id_in_chat_id(M.chat_id)
         await cmd.exec(M, context)
     
     def load_commands(self, folder_path):
@@ -213,3 +224,7 @@ class MessageHandler:
     
     def load_apis():
         pass
+
+
+
+
