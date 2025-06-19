@@ -13,6 +13,7 @@ class Command(BaseCommand):
             {
                 "command": "git",
                 "category": "utility",
+                "xp": True,
                 "AdminOnly": False,
                 "OwnerOnly": False,
                 "description": {"content": "Get GitHub user information"},

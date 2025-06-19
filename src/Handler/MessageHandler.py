@@ -4,6 +4,8 @@ import os
 import random
 import re
 from datetime import datetime
+
+import requests
 from Helpers import Utils
 from DiscordLevelingCard import RankCard
 
@@ -117,44 +119,42 @@ class MessageHandler:
                     break
             return rank
         
-        print("results:",cmd.config.OwnerOnly)
-        result = self.__client.db.User.get_user(M.sender.user_id)
-        xp = result["xp"]
-        lvl = result["lvl"]
-        current_rank = result.get("rank", "Beginner")
-        
-        # Gain XP
-        xp_gained = random.randint(5, 15)
-        xp += xp_gained
-        
-        # Level up every 100 XP (simple logic)
-        xp_per_level = 100
-        new_lvl = xp // xp_per_level
-        
-        # Check for level-up
-        leveled_up = new_lvl > lvl
-        last_lvl = lvl
-        lvl = new_lvl
-        
-        
-        # Optional: update rank based on level
-        new_rank = get_rank(lvl)
+        if cmd.config.xp:
+            result = self.__client.db.User.get_user(M.sender.user_id)
+            xp = result["xp"]
+            lvl = result["lvl"]
+            current_rank = result.get("rank", "Beginner")
+            
+            # Gain XP
+            xp_gained = random.randint(5, 15)
+            xp += xp_gained
+            
+            # Level up every 100 XP (simple logic)
+            xp_per_level = 100
+            new_lvl = xp // xp_per_level
+            
+            # Check for level-up
+            leveled_up = new_lvl > lvl
+            last_lvl = lvl
+            lvl = new_lvl
+            
+            
+            new_rank = get_rank(lvl)
         
         if leveled_up:
             avatar_url = Utils.Utils.img_to_url(
                 await self.__client.download_media(
                     M.sender.user_profile_id,
-                    file_name=f'downloads/{M.sender.user_profile_id}.jpg',
-                    ttl_seconds=120
+                    file_name=f'downloads/{M.sender.user_profile_id}.jpg'
                 )
             )
-        
+                
             rankcard_url = (
                 f"https://vacefron.nl/api/rankcard"
                 f"?username={M.sender.user_name}"
                 f"&avatar={avatar_url}"
                 f"&level={lvl}"
-                f"&rank={get_rank(lvl)}"
+                f"&rank={self.ranks}"
                 f"&currentxp={xp}"
                 f"&nextlevelxp={xp_per_level}"
                 f"&previouslevelxp={last_lvl}"
@@ -167,20 +167,15 @@ class MessageHandler:
             await self.__client.send_photo(
                 M.chat_id,
                 photo=rankcard_url,
-                caption=f"@{M.sender.user_name} leveled up to level {lvl} ({new_rank})!",
-                
-
+                caption=f"@{M.sender.user_name} leveled up to level {lvl} ({new_rank})!"
             )
 
 
-        # Update the user's rank if it has changed
         if new_rank != current_rank:
-            self.__client.db.User.update_rank(M.sender.user_id, new_rank)
+            self.__client.db.User.update_user(M.sender.user_id, {"rank": new_rank})
         
-        # Update the user's level and xperience in the database
         self.__client.db.User.lvl_garined(M.sender.user_id, xp, last_lvl, lvl)
         
-        # Add the chat ID to the bot's database
         self.__client.db.Botdb.add_chat_id_in_chat_id(M.chat_id)
         await cmd.exec(M, context)
     

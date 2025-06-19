@@ -11,6 +11,7 @@ class Command(BaseCommand):
             {
                 "command": "hi",
                 "category": "core",
+                "xp": True,
                 "AdminOnly": False,
                 "OwnerOnly": False,
                 "description": {"content": "Say hello to the bot"},
@@ -19,5 +20,5 @@ class Command(BaseCommand):
 
     async def exec(self, M: Message, contex):
         await self.client.send_message(
-            M.chat_id, f"Hey, @{M.sender.user_name} how is your day today?"
+            M.chat_id, f"Hey, @{M.sender.user_name} how is your day today? Use /help to user the Bot!"
         )

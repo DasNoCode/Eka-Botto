@@ -13,6 +13,7 @@ class Command(BaseCommand):
             {
                 "command": "weather",
                 "category": "core",
+                "xp": True,
                 "AdminOnly": False,
                 "OwnerOnly": False,
                 "description": {"content": "Get the current weather for a location"},

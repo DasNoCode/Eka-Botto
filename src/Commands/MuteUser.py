@@ -13,6 +13,7 @@ class Command(BaseCommand):
             {
                 "command": "mute",
                 "category": "chat",
+                "xp": False,
                 "AdminOnly": True,
                 "OwnerOnly": False,
                 "description": {"content": "Say hello to the bot"},

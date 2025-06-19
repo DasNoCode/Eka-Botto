@@ -13,6 +13,7 @@ class Command(BaseCommand):
             {
                 "command": "profile",
                 "category": "core",
+                "xp": True,
                 "AdminOnly": False,
                 "OwnerOnly": False,
                 "description": {"content": "Send the profile picture of the user."},

@@ -13,6 +13,7 @@ class Command(BaseCommand):
             {
                 "command": "dedeactivate",
                 "category": "core",
+                "xp": False,
                 "AdminOnly": True,
                 "OwnerOnly": False,
                 "description": {"content": "deactivate captcha and event"},

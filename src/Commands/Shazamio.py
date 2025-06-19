@@ -16,6 +16,7 @@ class Command(BaseCommand):
             {
                 "command": "shazamio",
                 "category": "media",
+                "xp": True,
                 "AdminOnly": False,
                 "OwnerOnly": False,
                 "description": {"content": "Identify the music playing around you"},

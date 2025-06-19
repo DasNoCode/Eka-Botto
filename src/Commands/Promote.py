@@ -13,6 +13,7 @@ class Command(BaseCommand):
             {
                 "command": "promote",
                 "category": "chat",
+                "xp": False,
                 "AdminOnly": True,
                 "OwnerOnly": False,
                 "description": {"content": "Promote the user to Admin of chat"},

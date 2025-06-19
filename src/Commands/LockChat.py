@@ -13,6 +13,7 @@ class Command(BaseCommand):
             {
                 "command": "lockchat",
                 "category": "chat",
+                "xp": False,
                 "AdminOnly": True,
                 "OwnerOnly": False,
                 "description": {"content": "Lock the chat"},

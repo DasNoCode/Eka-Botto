@@ -17,6 +17,7 @@ class Command(BaseCommand):
             {
                 "command": "tts",
                 "category": "media",
+                "xp": True,
                 "AdminOnly": False,
                 "OwnerOnly": False,
                 "description": {"content": "Convert text to voice"},

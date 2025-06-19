@@ -13,6 +13,7 @@ class Command(BaseCommand):
             {
                 "command": "igdl",
                 "category": "media",
+                "xp": True,
                 "AdminOnly": False,
                 "OwnerOnly": False,
                 "description": {"content": "Download the Instagram reels and photo."},

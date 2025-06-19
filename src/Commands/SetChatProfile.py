@@ -13,6 +13,7 @@ class Command(BaseCommand):
             {
                 "command": "chatprofile",
                 "category": "chat",
+                "xp": True,
                 "AdminOnly": True,
                 "OwnerOnly": False,
                 "description": {"content": "Set the chat profile picture"},

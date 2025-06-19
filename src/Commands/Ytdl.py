@@ -16,6 +16,7 @@ class Command(BaseCommand):
             {
                 "command": "ytdl",
                 "category": "media",
+                "xp": True,
                 "AdminOnly": False,
                 "OwnerOnly": False,
                 "description": {

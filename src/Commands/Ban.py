@@ -11,6 +11,7 @@ class Command(BaseCommand):
             {
                 "command": "ban",
                 "category": "chat",
+                "xp": False,
                 "AdminOnly": False,
                 "OwnerOnly": True,
                 "description": {"content": "Ban user from using the bot"},

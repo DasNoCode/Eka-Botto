@@ -11,6 +11,7 @@ class Command(BaseCommand):
             {
                 "command": "brodcast",
                 "category": "core",
+                "xp": False,
                 "AdminOnly": False,
                 "OwnerOnly": True,
                 "description": {"content": "Say hello to the bot"},

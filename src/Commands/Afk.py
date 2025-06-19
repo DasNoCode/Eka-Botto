@@ -13,6 +13,7 @@ class Command(BaseCommand):
             {
                 "command": "afk",
                 "category": "core",
+                "xp": False,
                 "AdminOnly": False,
                 "OwnerOnly": False,
                 "description": {

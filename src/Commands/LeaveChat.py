@@ -9,8 +9,9 @@ class Command(BaseCommand):
             client,
             handler,
             {
-                "command": "hi",
+                "command": "leave",
                 "category": "chat",
+                "xp": False,
                 "AdminOnly": False,
                 "OwnerOnly": True,
                 "description": {"content": "Say hello to the bot"},

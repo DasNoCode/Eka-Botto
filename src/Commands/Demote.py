@@ -13,6 +13,7 @@ class Command(BaseCommand):
             {
                 "command": "demote",
                 "category": "chat",
+                "xp": False,
                 "AdminOnly": True,
                 "OwnerOnly": False,
                 "description": {"content": "demote the user to Admin of chat"},

@@ -15,6 +15,7 @@ class Command(BaseCommand):
             {
                 "command": "ttt",
                 "category": "game",
+                "xp": True,
                 "AdminOnly": False,
                 "OwnerOnly": False,
                 "description": {"content": "Play Tic-Tac-Toe with the bot"},

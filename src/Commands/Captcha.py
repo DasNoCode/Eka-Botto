@@ -19,6 +19,7 @@ class Command(BaseCommand):
             {
                 "command": "captcha",
                 "category": "core",
+                "xp": False,
                 "AdminOnly": True,
                 "OwnerOnly": False,
                 "description": {"content": "Prevents bots from joining"},
