@@ -1,14 +1,9 @@
 import importlib.util
-import math
 import os
 import random
 import re
 from datetime import datetime
-
-import requests
 from Helpers import Utils
-from DiscordLevelingCard import RankCard
-
 from Structures.Client import SuperClient
 from Structures.Message import Message
 
@@ -16,16 +11,6 @@ from Structures.Message import Message
 class MessageHandler:
 
     commands = {}
-    ranks = [
-        (1, "Novice"),
-        (5, "Apprentice"),
-        (10, "Warrior"),
-        (20, "Elite"),
-        (30, "Master"),
-        (50, "Grandmaster"),
-        (75, "Legendary"),
-        (100, "Mythic"),
-    ]
 
     def __init__(self, client: SuperClient):
         self.__client = client
@@ -110,71 +95,67 @@ class MessageHandler:
             f"({'ADMIN' if M.isAdmin else 'NOT ADMIN'})"
         )
 
-        def get_rank(level):
-            rank = "Beginner"
-            for lvl, title in self.ranks:
-                if level >= lvl:
-                    rank = title
-                else:
-                    break
-            return rank
+        def get_user_rank(user_id, all_users):
+            sorted_users = sorted(all_users, key=lambda x: x["xp"], reverse=True)
+        
+            for index, user in enumerate(sorted_users, start=1):
+                if user["user_id"] == user_id:
+                    return index
+            return -1  # If not found
+        
         
         if cmd.config.xp:
             result = self.__client.db.User.get_user(M.sender.user_id)
             xp = result["xp"]
             lvl = result["lvl"]
-            current_rank = result.get("rank", "Beginner")
-            
-            # Gain XP
+        
             xp_gained = random.randint(5, 15)
             xp += xp_gained
-            
-            # Level up every 100 XP (simple logic)
-            xp_per_level = 100
-            new_lvl = xp // xp_per_level
-            
-            # Check for level-up
-            leveled_up = new_lvl > lvl
+        
+            xp_per_level = 5 * (lvl ** 2) + 50
             last_lvl = lvl
-            lvl = new_lvl
-            
-            
-            new_rank = get_rank(lvl)
+            leveled_up = False
         
-        if leveled_up:
-            avatar_url = Utils.Utils.img_to_url(
-                await self.__client.download_media(
-                    M.sender.user_profile_id,
-                    file_name=f'downloads/{M.sender.user_profile_id}.jpg'
+            if xp >= xp_per_level:
+                xp -= xp_per_level
+                lvl += 1
+                leveled_up = True
+        
+            self.__client.db.User.update_user(M.sender.user_id, {"xp": xp, "lvl": lvl})
+        
+            rank = get_user_rank(M.sender.user_id, self.__client.db.User.get_all_users())
+            self.__client.db.User.update_user(M.sender.user_id, {"rank": rank})
+
+            if leveled_up:
+                avatar_url = Utils.Utils.img_to_url(
+                    await self.__client.download_media(
+                        M.sender.user_profile_id,
+                        file_name=f'Images/{M.sender.user_profile_id}.jpg'
+                    )
                 )
-            )
-                
-            rankcard_url = (
-                f"https://vacefron.nl/api/rankcard"
-                f"?username={M.sender.user_name}"
-                f"&avatar={avatar_url}"
-                f"&level={lvl}"
-                f"&rank={self.ranks}"
-                f"&currentxp={xp}"
-                f"&nextlevelxp={xp_per_level}"
-                f"&previouslevelxp={last_lvl}"
-                f"&custombg=https://media.discordapp.net/attachments/1022533781040672839/1026849383104397312/image0.jpg"
-                f"&xpcolor=00ffff"
-                f"&isboosting=false"
-                f"&circleavatar=true"
-            )
         
-            await self.__client.send_photo(
-                M.chat_id,
-                photo=rankcard_url,
-                caption=f"@{M.sender.user_name} leveled up to level {lvl} ({new_rank})!"
-            )
-
-
-        if new_rank != current_rank:
-            self.__client.db.User.update_user(M.sender.user_id, {"rank": new_rank})
+                rankcard_url = (
+                    "https://vacefron.nl/api/rankcard"
+                    f"?username={M.sender.user_name}"
+                    f"&avatar={avatar_url}"
+                    f"&level={lvl}"
+                    f"&rank={rank}"
+                    f"&currentxp={xp}"
+                    f"&nextlevelxp={5 * (lvl ** 2) + 50}"
+                    f"&previouslevelxp={xp_per_level}"
+                    f"&custombg=https://media.discordapp.net/attachments/1022533781040672839/1026849383104397312/image0.jpg"
+                    f"&xpcolor=00ffff"
+                    f"&isboosting=false"
+                    f"&circleavatar=true"
+                )
         
-        self.__client.db.User.lvl_garined(M.sender.user_id, xp, last_lvl, lvl)
+                await self.__client.send_photo(
+                    M.chat_id,
+                    rankcard_url,
+                    caption=f"@{M.sender.user_name} leveled up to level {lvl} #{rank}!"
+                )
+                self.__client.db.User.update_user(M.sender.user_id, {"rank": rank}) 
+                self.__client.db.User.lvl_garined(M.sender.user_id, xp, last_lvl, lvl)
         
         self.__client.db.Botdb.add_chat_id_in_chat_id(M.chat_id)
         await cmd.exec(M, context)
