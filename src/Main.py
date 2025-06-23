@@ -35,7 +35,7 @@ Bot = SuperClient(
 sys.path.insert(0, os.getcwd())
 instance = MessageHandler(Bot)
 eventInstance = EventHandler(Bot)
-instance.load_commands("src/Commands")
+instance.loadCommands("src/Commands")
 
 
 @Bot.on_message(

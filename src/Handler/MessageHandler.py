@@ -3,6 +3,7 @@ import os
 import random
 import re
 from datetime import datetime
+
 from Helpers import Utils
 from Structures.Client import SuperClient
 from Structures.Message import Message
@@ -10,197 +11,144 @@ from Structures.Message import Message
 
 class MessageHandler:
 
-    commands = {}
-
     def __init__(self, client: SuperClient):
         self.__client = client
+        self.commandMap = {}
 
-    async def handler(self, M: Message):
-        context = self.parse_args(M.message)
+    async def handler(self, messageObj: Message):
+        messageText = messageObj.message
+        commandContext = self.parseArgs(messageText)
 
-        if M.message is None:
+        if messageText is None:
             return
 
-        isCommand = M.message.startswith(self.__client.prifix)
+        isCommand = messageText.startswith(self.__client.prifix)
 
-        mentioned_user = M.mentioned[0] if M.mentioned else None
-        mentioned_user_id = getattr(mentioned_user, "user_id", None)
-        mentioned_is_afk = (
-            self.__client.db.User.get_user(mentioned_user_id).get(
-                "afk", {"is_afk": False}
-            )
-            if mentioned_user_id
-            else {"is_afk": False}
+        # === AFK Handling ===
+        mentionedUser = messageObj.mentioned[0] if messageObj.mentioned else None
+        mentionedUserId = getattr(mentionedUser, "user_id", None)
+        mentionedAFK = (
+            self.__client.db.User.get_user(mentionedUserId).get("afk", {"is_afk": False})
+            if mentionedUserId else {"is_afk": False}
         )
 
-        replied_user = getattr(M.reply_to_message, "replied_user", None)
-        replied_user_id = replied_user.user_id if replied_user else None
-        replied_is_afk = self.__client.db.User.get_user(replied_user_id).get(
-            "afk", {"is_afk": False}
-        )
-        if self.__client.db.User.get_user(M.sender.user_id)["afk"]["is_afk"] is True:
-            current_time = datetime.now().time().strftime("%H:%M:%S")
-            self.__client.db.User.set_afk(M.sender.user_id, False, None, current_time)
+        repliedUser = getattr(messageObj.reply_to_message, "replied_user", None)
+        repliedUserId = repliedUser.user_id if repliedUser else None
+        repliedAFK = self.__client.db.User.get_user(repliedUserId).get("afk", {"is_afk": False})
+
+        userData = self.__client.db.User.get_user(messageObj.sender.user_id)
+        if userData["afk"]["is_afk"]:
+            currentTime = datetime.now().time().strftime("%H:%M:%S")
+            self.__client.db.User.set_afk(messageObj.sender.user_id, False, None, currentTime)
             await self.__client.send_message(
-                M.chat_id,
-                f"__@{M.sender.user_name} nice to see you again!__",
+                messageObj.chat_id,
+                f"__@{messageObj.sender.user_name} nice to see you again!__"
             )
-        if mentioned_is_afk["is_afk"] and replied_is_afk["is_afk"]:
+
+        if mentionedAFK["is_afk"] and repliedAFK["is_afk"]:
             return await self.__client.send_message(
-                M.chat_id,
-                f"__@{M.sender.user_name} @{mentioned_user.user_name} is currently offline.\n**Reason** : {mentioned_is_afk.get('afk_reason', 'None')}__",
+                messageObj.chat_id,
+                f"__@{messageObj.sender.user_name} @{mentionedUser.user_name} is currently offline.\n"
+                f"**Reason** : {mentionedAFK.get('afk_reason', 'None')}__"
             )
-        if mentioned_is_afk["is_afk"]:
+        elif mentionedAFK["is_afk"]:
             await self.__client.send_message(
-                M.chat_id,
-                f"__@{M.sender.user_name} @{mentioned_user.user_name} is currently offline.\n**Reason** : {mentioned_is_afk.get('afk_reason', 'None')}__",
+                messageObj.chat_id,
+                f"__@{messageObj.sender.user_name} @{mentionedUser.user_name} is currently offline.\n"
+                f"**Reason** : {mentionedAFK.get('afk_reason', 'None')}__"
             )
-        elif replied_is_afk["is_afk"]:
+        elif repliedAFK["is_afk"]:
             await self.__client.send_message(
-                M.chat_id,
-                f"__@{M.sender.user_name} @{replied_user.user_name} is currently offline.\n**Reason** : {replied_is_afk.get('afk_reason', 'None')}__",
+                messageObj.chat_id,
+                f"__@{messageObj.sender.user_name} @{repliedUser.user_name} is currently offline.\n"
+                f"**Reason** : {repliedAFK.get('afk_reason', 'None')}__"
             )
-        
-        if not isCommand:  
+
+        # === Message Logging if Not Command ===
+        if not isCommand:
             self.__client.log.info(
-                f"[MSG]: From {M.chat_type} by {M.sender.user_name} ({'ADMIN' if M.isAdmin else 'NOT ADMIN'})"
+                f"[MSG]: From {messageObj.chat_type} by {messageObj.sender.user_name} "
+                f"({'ADMIN' if messageObj.isAdmin else 'NOT ADMIN'})"
             )
             return
-        
-        if M.message is self.__client.prifix:
+
+        # === Command Parsing and Execution ===
+        if messageText == self.__client.prifix:
             return await self.__client.send_message(
-                M.chat_id, f"__Enter a command following {self.__client.prifix}__"
+                messageObj.chat_id,
+                f"__Enter a command following {self.__client.prifix}__"
             )
 
-        cmd = self.commands[context[0]] if context[0] in self.commands.keys() else None
+        commandName = commandContext[0]
+        commandObj = self.commandMap.get(commandName)
 
-        if not cmd:
+        if not commandObj:
             return await self.__client.send_message(
-                M.chat_id, "__Command does not available!!__"
+                messageObj.chat_id,
+                "__Command does not available!!__"
             )
-        if cmd.config.OwnerOnly:
-            if str(M.sender.user_id) != self.__client.owner_id:
-                return await self.__client.send_message(
-                    M.chat_id, "__This command can only be used by the owner!!__"
-                )
 
-        if cmd.config.AdminOnly:
-            if not M.isAdmin:
-                return await self.__client.send_message(
-                    M.chat_id, "__This command can only be used by an admin!!__"
-                )
+        if commandObj.config.xp:
+            await self.__client.xp_lvl(messageObj)
+
+        if commandObj.config.OwnerOnly and str(messageObj.sender.user_id) != self.__client.owner_id:
+            return await self.__client.send_message(
+                messageObj.chat_id,
+                "__This command can only be used by the owner!!__"
+            )
+
+        if commandObj.config.AdminOnly and not messageObj.isAdmin:
+            return await self.__client.send_message(
+                messageObj.chat_id,
+                "__This command can only be used by an admin!!__"
+            )
 
         self.__client.log.info(
-            f"[CMD]: {self.__client.prifix}{context[0]} from {M.chat_type} by {M.sender.user_name} "
-            f"({'ADMIN' if M.isAdmin else 'NOT ADMIN'})"
+            f"[CMD]: {self.__client.prifix}{commandName} from {messageObj.chat_type} "
+            f"by {messageObj.sender.user_name} "
+            f"({'ADMIN' if messageObj.isAdmin else 'NOT ADMIN'})"
         )
 
-        def get_user_rank(user_id, all_users):
-            sorted_users = sorted(all_users, key=lambda x: x["xp"], reverse=True)
-        
-            for index, user in enumerate(sorted_users, start=1):
-                if user["user_id"] == user_id:
-                    return index
-            return -1  # If not found
-        
-        
-        if cmd.config.xp:
-            result = self.__client.db.User.get_user(M.sender.user_id)
-            xp = result["xp"]
-            lvl = result["lvl"]
-        
-            xp_gained = random.randint(5, 15)
-            xp += xp_gained
-        
-            xp_per_level = 5 * (lvl ** 2) + 50
-            last_lvl = lvl
-            leveled_up = False
-        
-            if xp >= xp_per_level:
-                xp -= xp_per_level
-                lvl += 1
-                leveled_up = True
-        
-            self.__client.db.User.update_user(M.sender.user_id, {"xp": xp, "lvl": lvl})
-        
-            rank = get_user_rank(M.sender.user_id, self.__client.db.User.get_all_users())
-            self.__client.db.User.update_user(M.sender.user_id, {"rank": rank})
+        self.__client.db.Botdb.add_chat_id_in_chat_id(messageObj.chat_id)
+        await commandObj.exec(messageObj, commandContext)
 
-            if leveled_up:
-                avatar_url = Utils.Utils.img_to_url(
-                    await self.__client.download_media(
-                        M.sender.user_profile_id,
-                        file_name=f'Images/{M.sender.user_profile_id}.jpg'
-                    )
-                )
-        
-                rankcard_url = (
-                    "https://vacefron.nl/api/rankcard"
-                    f"?username={M.sender.user_name}"
-                    f"&avatar={avatar_url}"
-                    f"&level={lvl}"
-                    f"&rank={rank}"
-                    f"&currentxp={xp}"
-                    f"&nextlevelxp={5 * (lvl ** 2) + 50}"
-                    f"&previouslevelxp={xp_per_level}"
-                    f"&custombg=https://media.discordapp.net/attachments/1022533781040672839/1026849383104397312/image0.jpg"
-                    f"&xpcolor=00ffff"
-                    f"&isboosting=false"
-                    f"&circleavatar=true"
-                )
-        
-                await self.__client.send_photo(
-                    M.chat_id,
-                    rankcard_url,
-                    caption=f"@{M.sender.user_name} leveled up to level {lvl} #{rank}!"
-                )
-                self.__client.db.User.update_user(M.sender.user_id, {"rank": rank}) 
-                self.__client.db.User.lvl_garined(M.sender.user_id, xp, last_lvl, lvl)
-        
-        self.__client.db.Botdb.add_chat_id_in_chat_id(M.chat_id)
-        await cmd.exec(M, context)
-    
-    def load_commands(self, folder_path):
-        for filename in os.listdir(folder_path):
-            if filename.endswith(".py"):
-                module_name = filename[:-3]
-                file_path = os.path.join(folder_path, filename)
+    def loadCommands(self, folderPath):
+        for fileName in os.listdir(folderPath):
+            if not fileName.endswith(".py"):
+                continue
 
-                spec = importlib.util.spec_from_file_location(module_name, file_path)
-                module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(module)
+            moduleName = fileName[:-3]
+            filePath = os.path.join(folderPath, fileName)
 
-                class_ = getattr(module, "Command")
-                instance = class_(self.__client, self)
-                self.commands[instance.config.command] = instance
-                self.__client.log.notice(
-                    f"Loaded: {instance.config.command} from {file_path}"
-                )
-                aliases = (
-                    instance.config["aliases"]
-                    if hasattr(instance.config, "aliases")
-                    else []
-                )
-                for alias in aliases:
-                    self.commands[alias] = instance
+            spec = importlib.util.spec_from_file_location(moduleName, filePath)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
 
-        self.__client.log.info("Successfully Loaded all the commnads")
+            commandClass = getattr(module, "Command")
+            commandInstance = commandClass(self.__client, self)
 
-    def parse_args(self, raw):
-        if raw is not None:
-            args = raw.split(" ")
-            cmd = args.pop(0).lower()[len(self.__client.prifix) :] if args else ""
-            text = " ".join(args)
-            flags = {
-                flag: (value if value else None)
-                for flag, value in re.findall(r"--(\w+)(?:=(\S*))?", raw)
-            }
+            self.commandMap[commandInstance.config.command] = commandInstance
+            self.__client.log.notice(f"Loaded: {commandInstance.config.command} from {filePath}")
 
-            return (cmd, text, flags, args, raw)
-    
-    def load_apis():
+            aliases = getattr(commandInstance.config, "aliases", [])
+            for alias in aliases:
+                self.commandMap[alias] = commandInstance
+
+        self.__client.log.info("Successfully Loaded all the commands")
+
+    def parseArgs(self, rawText):
+        if rawText is None:
+            return None
+
+        argsList = rawText.split(" ")
+        command = argsList.pop(0).lower()[len(self.__client.prifix):] if argsList else ""
+        text = " ".join(argsList)
+        flags = {
+            key: (value if value else None)
+            for key, value in re.findall(r"--(\w+)(?:=(\S*))?", rawText)
+        }
+
+        return (command, text, flags, argsList, rawText)
+
+    def loadApis(self):
         pass
-
-
-
-
