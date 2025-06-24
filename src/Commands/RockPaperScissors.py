@@ -12,24 +12,6 @@ def choice_to_emoji(choice: str) -> str:
         "scissors": "✂️"
     }.get(choice.lower(), "❓")
 
-def outcome_to_emoji(outcome: str) -> str:
-    """Map outcome to emoji color."""
-    if outcome == "Tie Game":
-        return "🟡"
-    elif "Win" in outcome:
-        return "🟢" if "Win" in outcome and "@" in outcome else "🔴"
-    return "❓"
-
-MOTIVATIONAL_MESSAGES = [
-    "Nice move! Keep it up! 💪",
-    "Don't give up, you can do it! 🚀",
-    "That was close! Try your best! 🎯",
-    "You're on fire! 🔥",
-    "The game is heating up! 😎",
-    "Every round counts, stay sharp! 🧠",
-    "Is the bot getting smarter? 😉",
-    "You got this! 👏"
-]
 
 class Command(BaseCommand):
     def __init__(self, client, handler):
@@ -73,14 +55,13 @@ class Command(BaseCommand):
                         InlineKeyboardButton("Scissors ✂️", callback_data=f"/rps --type=game --data=Scissors --user_id={self.user_id}")
                     ]]
                 )
-
+                user_choice_emoji = "❓"
+                bot_choice_emoji = "❓"
                 text = (
                     f"🎮 **Rock-Paper-Scissors**\n\n"
-                    f"👤 @{M.sender.user_name} (❓)  vs  🤖 @{M.bot_username} (❓)\n\n"
-                    f"**Round**: {min(self.played_rounds, self.target_rounds)} / {self.target_rounds} | **Score**: 👤 {self.user_points} - {self.bot_points} 🤖\n\n"
-                    "🔔 Game started! Make your move.\n"
+                    f"**[**   **(**{user_choice_emoji}**)**   👤 **You:**   {self.user_points}  **|**  {self.bot_points}   **:Bot 🤖**   **(**{bot_choice_emoji}**)**    **]**\n\n"
+                    f"**Round:** {self.played_rounds} **/** {self.target_rounds}\n"
                 )
-
                 return await self.client.edit_message_text(
                     chat_id=M.chat_id,
                     message_id=M.message_id,
@@ -105,7 +86,7 @@ class Command(BaseCommand):
 
             return await self.client.send_message(
                 M.chat_id,
-                "How many rounds do you want to play?",
+                "**How many rounds do you want to play?**",
                 reply_markup=InlineKeyboardMarkup(buttons)
             )
 
@@ -122,13 +103,6 @@ class Command(BaseCommand):
         if context[2].get("type") == "game":
             user_choice = context[2].get("data").lower()
             bot_choice = random.choice(["rock", "paper", "scissors"])
-
-            if user_choice not in {"rock", "paper", "scissors"}:
-                return await self.client.answer_callback_query(
-                    callback_query_id=M.query_id,
-                    text="Invalid choice! Please choose Rock, Paper, or Scissors.",
-                    show_alert=True,
-                )
 
             if user_choice == bot_choice:
                 outcome = "Tie Game"
@@ -147,29 +121,24 @@ class Command(BaseCommand):
 
             user_choice_emoji = choice_to_emoji(user_choice)
             bot_choice_emoji = choice_to_emoji(bot_choice)
-            outcome_emoji = (
-                "🟡" if outcome == "Tie Game"
-                else "🟢" if outcome.startswith("@"+M.sender.user_name)
-                else "🔴"
-            )
+
             outcome_message = (
                 "It's a tie!"
                 if outcome == "Tie Game"
-                else "You win this round!"
+                else "You win!"
                 if outcome.startswith("@"+M.sender.user_name)
-                else "Bot wins this round!"
+                else "Bot wins!"
             )
-            motivational_message = random.choice(MOTIVATIONAL_MESSAGES)
 
             text = (
                 f"🎮 **Rock-Paper-Scissors**\n\n"
-                f"👤 @{M.sender.user_name} ({user_choice_emoji})  vs  🤖 @{M.bot_username} ({bot_choice_emoji})\n\n"
-                f"**Round**: {min(self.played_rounds, self.target_rounds)} / {self.target_rounds} | **Score**: 👤 {self.user_points} - {self.bot_points} 🤖\n\n"
-                f"🔔 Last round: {outcome_emoji} {outcome_message}"
-                f"\n\n{motivational_message}"
+                f"**[**   **(**{user_choice_emoji}**)**   👤 **You:**   {self.user_points}  **|**  {self.bot_points}   **:Bot 🤖**   **(**{bot_choice_emoji}**)**    **]**\n\n"
+                f"**Round:** {self.played_rounds} **/** {self.target_rounds}\n\n"
+                f"**Last round:** {outcome_message}"
+
             )
 
-            result_text = f"{text}\n\n• **Game**: __{outcome}__"
+            result_text = f"{text}\n\n**Game**: {outcome}"
 
             if self.played_rounds == self.target_rounds:
                 if self.user_points > self.bot_points:
@@ -177,14 +146,16 @@ class Command(BaseCommand):
                     xp_gained = (random.randint(3, 5))
                     await self.client.xp_lvl(M, xp_gained=xp_gained)
                     self.client.db.User.update_user(M.sender.user_id,{"rps": {"win": current_win + 1}})
-                    result_text = f"{text}\n\n🏆 **Winner:** @{M.sender.user_name} | **XP**: {xp_gained}\n\n👏 Congratulations, you beat the bot!"
+                    result_text = f"{text}\n\n**Winner:** @{M.sender.user_name} **|** **XP:** {xp_gained}"
                 elif self.user_points < self.bot_points:
                     xp_gained = (random.randint(1, 2))
                     await self.client.xp_lvl(M, xp_gained=xp_gained)
-                    result_text = f"{text}\n\n🏆 **Winner:** @{M.bot_username} | **XP**: {xp_gained}\n\n🤖 Better luck next time!"
+                    result_text = f"{text}\n\n**Winner:** @{M.bot_username} **|** **XP:** {xp_gained}"
                 else:
                     await self.client.xp_lvl(M, xp_gained=1)
-                    result_text = f"{text}\n\n🤝 **Result:** Tie Game! | **XP**: 1"
+                    result_text = f"{text}\n\n**Result:** Tie Game! **|** **XP:** 1"
+                total_rounds_played = self.client.db.User.get_user(user_id=M.sender.user_id).get("rps").get("total_game_played")
+                self.client.db.User.update_user(M.sender.user_id,{"rps": {"total_game_played": total_rounds_played + 1}})
                 self.reset_game()
                 reply_markup = None
             else:

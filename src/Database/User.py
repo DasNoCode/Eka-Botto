@@ -27,7 +27,7 @@ class User:
                 "time": user_data.get("afk", {}).get("time", ""),
             },
             "lvl": user_data.get("lvl", 1),
-            "last-lvl": user_data.get("last-lvl", 1),
+            "last_lvl": user_data.get("last_lvl", 1),
             "xp": user_data.get("xp", 0),
             "tic_tac_toe": {
                 "win": user_data.get("tic_tac_toe", {}).get("win", 0),
@@ -82,6 +82,7 @@ class User:
         if not user:
             return
         user["xp"] = xp
+        print("last lvl:", last_lvl)
         user["last_lvl"] = last_lvl
         user["lvl"] = lvl
         self.update_user(user_id, user)

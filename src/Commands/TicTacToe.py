@@ -1,13 +1,12 @@
 import random
 from threading import Timer
-
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from Structures.Command.BaseCommand import BaseCommand
 from Structures.Message import Message
 
-
 class Command(BaseCommand):
+
     def __init__(self, client, handler):
         super().__init__(
             client,
@@ -19,80 +18,75 @@ class Command(BaseCommand):
                 "AdminOnly": False,
                 "OwnerOnly": False,
                 "description": {"content": "Play Tic-Tac-Toe with the bot"},
-            },
+            }
         )
-        self.user_id = None
-        self.user_points = 0
-        self.bot_points = 0
-        self.player_mark = "❌"
-        self.bot_mark = "⭕️"
+        self.userId = None
+        self.userPoints = 0
+        self.botPoints = 0
+        self.playerMark = "❌"
+        self.botMark = "⭕️"
         self.board = {i: "⬜️" for i in range(1, 10)}
 
-    def update_board(self, letter, position):
+    def updateBoard(self, letter, position):
         self.board[position] = letter
 
-    def reset_board(self):
-        self.user_id = None
-        self.user_points = 0
-        self.bot_points = 0
-
+    def resetBoard(self):
+        self.userId = None
+        self.userPoints = 0
+        self.botPoints = 0
         for key in self.board.keys():
             self.board[key] = "⬜️"
 
-    def is_draw(self):
+    def isDraw(self):
         return all(space != "⬜️" for space in self.board.values())
 
-    def is_space_free(self, position):
+    def isSpaceFree(self, position):
         return self.board[position] == "⬜️"
 
-    def is_winner(self, mark):
-        winning_combinations = [
-            (1, 2, 3),
-            (4, 5, 6),
-            (7, 8, 9),
-            (1, 4, 7),
-            (2, 5, 8),
-            (3, 6, 9),
-            (1, 5, 9),
-            (7, 5, 3),
+    def isWinner(self, mark):
+        winningCombinations = [
+            (1, 2, 3), (4, 5, 6), (7, 8, 9),
+            (1, 4, 7), (2, 5, 8), (3, 6, 9),
+            (1, 5, 9), (7, 5, 3)
         ]
         return any(
             self.board[a] == self.board[b] == self.board[c] == mark
-            for a, b, c in winning_combinations
+            for a, b, c in winningCombinations
         )
 
-    def best_move(self):
-        best_score = -float("inf")
+    def bestMove(self):
+        bestScore = -float("inf")
         move = None
         for key in self.board:
-            if self.is_space_free(key):
-                self.board[key] = self.bot_mark
+            if self.isSpaceFree(key):
+                self.board[key] = self.botMark
                 score = self.minimax(0, False)
                 self.board[key] = "⬜️"
-                if score > best_score:
-                    best_score, move = score, key
+                if score > bestScore:
+                    bestScore, move = score, key
         return move
 
-    def minimax(self, depth, is_maximizing):
-        if self.is_winner(self.bot_mark):
+    def minimax(self, depth, isMaximizing):
+        if self.isWinner(self.botMark):
             return 1
-        if self.is_winner(self.player_mark):
+        if self.isWinner(self.playerMark):
             return -1
-        if self.is_draw():
+        if self.isDraw():
             return 0
 
-        best_score = float("-inf") if is_maximizing else float("inf")
+        bestScore = float("-inf") if isMaximizing else float("inf")
         for key in self.board:
-            if self.is_space_free(key):
-                self.board[key] = self.bot_mark if is_maximizing else self.player_mark
-                score = self.minimax(depth + 1, not is_maximizing)
+            if self.isSpaceFree(key):
+                self.board[key] = self.botMark if isMaximizing else self.playerMark
+                score = self.minimax(depth + 1, not isMaximizing)
                 self.board[key] = "⬜️"
-                best_score = (
-                    max(best_score, score) if is_maximizing else min(best_score, score)
-                )
-        return best_score
+                if isMaximizing:
+                    bestScore = max(bestScore, score)
+                else:
+                    bestScore = min(bestScore, score)
+        return bestScore
 
-    def generate_keyboard(self):
+    def generateKeyboard(self):
         return InlineKeyboardMarkup(
             [
                 [
@@ -105,66 +99,76 @@ class Command(BaseCommand):
             ]
         )
 
-    async def exec(self, M: Message, context):
-        self.text = (
-            f"@{M.sender.user_name}  **VS**  @{M.bot_username} \n• **Type** =  __Tic-Tac-Toe__ \n"
-            f"• **Score** = 👤 -  **{self.user_points}** | 🤖 -  **{self.bot_points}**"
-        )
+    async def exec(self, message: Message, context):
+        self.text = "🎮  **Tic-Tac-Toe** \n\n **[** 👤 You  **|**  Bot 🤖  **]**"
 
-        if self.user_id is None:
-            self.user_id = M.sender.user_id
+        if self.userId is None:
+            self.userId = message.sender.user_id
             self.msg = await self.client.send_message(
-                chat_id=M.chat_id, text=self.text, reply_markup=self.generate_keyboard()
+                chat_id=message.chat_id, text=self.text, reply_markup=self.generateKeyboard()
             )
             return
 
-        if not M.is_callback:
+        if not message.is_callback:
             return
 
-        if M.sender.user_id != self.user_id:
+        if message.sender.user_id != self.userId:
             return await self.client.answer_callback_query(
-                callback_query_id=M.query_id,
-                text="__This is not your game!🎮\n Use /ttt to play__",
-                show_alert=True,
+                callback_query_id=message.query_id,
+                text="**This is not your game!**\n\n**Use /ttt to play**",
+                show_alert=True
             )
 
         pos = int(context[2].get("data"))
-        if not self.is_space_free(pos):
+        if not self.isSpaceFree(pos):
             return
 
-        self.update_board(self.player_mark, pos)
-        if self.is_winner(self.player_mark):
-            self.user_points += 1
-            result_text = f"{self.text}\n• **Game** = __User Win__"
+        self.updateBoard(self.playerMark, pos)
+        if self.isWinner(self.playerMark):
+            userStats = self.client.db.User.get_user(user_id=self.userId)
+            currentWin = userStats.get("tic_tac_toe", {}).get("win", 0)
+            xpGained = random.randint(3, 5)
+            await self.client.xp_lvl(message, xp_gained=xpGained)
+            self.client.db.User.update_user(self.userId, {"tic_tac_toe": {"win": currentWin + 1}})
+            totalRoundsPlayed = self.client.db.User.get_user(user_id=message.sender.user_id).get("tic_tac_toe").get("total_game_played")
+            self.client.db.User.update_user(message.sender.user_id, {"tic_tac_toe": {"total_game_played": totalRoundsPlayed + 1}})
+            resultText = f"{self.text}\n\n**Winner:**  @{message.sender.user_name} Win!\n\n**XP:**  {xpGained}"
             await self.client.edit_message_text(
-                chat_id=M.chat_id, message_id=M.message_id, text=result_text
+                chat_id=message.chat_id, message_id=message.message_id, text=resultText
             )
-            self.reset_board()
+            self.resetBoard()
             return
 
-        if self.is_draw():
-            result_text = f"{self.text}\n• **Game** = __Tie Game__"
+        if self.isDraw():
+            xpGained = random.randint(1, 2)
+            await self.client.xp_lvl(message, xp_gained=xpGained)
+            totalRoundsPlayed = self.client.db.User.get_user(user_id=message.sender.user_id).get("tic_tac_toe").get("total_game_played")
+            self.client.db.User.update_user(message.sender.user_id, {"tic_tac_toe": {"total_game_played": totalRoundsPlayed + 1}})
+            resultText = f"{self.text}\n\n**Winner:** Bot | User\n\n**XP:**  {xpGained}"
             await self.client.edit_message_text(
-                chat_id=M.chat_id, message_id=M.message_id, text=result_text
+                chat_id=message.chat_id, message_id=message.message_id, text=resultText
             )
-            self.reset_board()
+            self.resetBoard()
             return
 
-        bot_move = self.best_move()
-        self.update_board(self.bot_mark, bot_move)
+        botMove = self.bestMove()
+        self.updateBoard(self.botMark, botMove)
 
-        if self.is_winner(self.bot_mark):
-            self.bot_points += 1
-            result_text = f"{self.text}\n• **Game** = __Bot Win__"
+        if self.isWinner(self.botMark):
+            xpGained = random.randint(1, 2)
+            await self.client.xp_lvl(message, xp_gained=xpGained)
+            totalRoundsPlayed = self.client.db.User.get_user(user_id=message.sender.user_id).get("tic_tac_toe").get("total_game_played")
+            self.client.db.User.update_user(message.sender.user_id, {"tic_tac_toe": {"total_game_played": totalRoundsPlayed + 1}})
+            resultText = f"{self.text}\n\n**Winner:** Bot Win!\n\n**XP:**  {xpGained}"
             await self.client.edit_message_text(
-                chat_id=M.chat_id, message_id=M.message_id, text=result_text
+                chat_id=message.chat_id, message_id=message.message_id, text=resultText
             )
-            self.reset_board()
+            self.resetBoard()
             return
 
         await self.client.edit_message_text(
-            chat_id=M.chat_id,
-            message_id=M.message_id,
+            chat_id=message.chat_id,
+            message_id=message.message_id,
             text=self.text,
-            reply_markup=self.generate_keyboard(),
+            reply_markup=self.generateKeyboard()
         )

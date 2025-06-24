@@ -60,7 +60,7 @@ class SuperClient(Client):
         self.db.User.update_user(message.sender.user_id, {"rank": rank})
 
         if leveled_up:
-            avatar_url = Utils.Utils.img_to_url(
+            avatar_url = self.utils.img_to_url(
                 await self.download_media(
                     message.sender.user_profile_id,
                     file_name=f'Images/{message.sender.user_profile_id}.jpg'
