@@ -28,13 +28,13 @@ class Command(BaseCommand):
                     [
                         InlineKeyboardButton(
                             "Captcha",
-                            callback_data=f"/activate --captcha={True}",
+                            callback_data=f"/activate --type=captcha --data={True}",
                         )
                     ],
                     [
                         InlineKeyboardButton(
                             "Event",
-                            callback_data=f"/activate --event={True}",
+                            callback_data=f"/activate --type=event --data={True}",
                         )
                     ],
                 ]
@@ -42,26 +42,29 @@ class Command(BaseCommand):
             return await self.client.send_message(
                 M.chat_id, "What you want to activate ?", reply_markup=btn
             )
-        keys = list(context[2].keys())
-        if keys[0] == "captcha":
-            all_captcha = self.client.db.Chat.get_all_captchas()
+        
+        chat_data = self.client.db.Chat.get_chat_data(M.chat_id)
 
-            if M.chat_id in all_captcha:
+        if context[2].get("type") == "captcha":
+            
+            if chat_data.get("settings").get("captchas"):
                 return await self.client.send_message(
-                    M.chat_id, f"Captcha is already activated in {M.chat_title}"
+                    M.chat_id, f"**Captcha** is already activated in:\n\n{M.chat_title}"
                 )
 
-            self.client.db.Chat.add_chat_id_in_captcha(M.chat_id)
+            self.client.db.Chat.update_chat_datas(M.chat_id,{"settings": {"captchas": True}})
             return await self.client.send_message(
-                M.chat_id, f"Captcha has been activated in {M.chat_title}"
+                M.chat_id, f"**Captcha** has been activated in:\n\n{M.chat_title}"
             )
 
-        all_events = self.client.db.Chat.get_all_events()
-        if M.chat_id in all_events:
+        if chat_data.get("settings").get("events"):
             return await self.client.send_message(
-                M.chat_id, f"Event is already activated in {M.chat_title}"
+                M.chat_id, f"**Event** is already activated in:\n\n{M.chat_title}"
             )
-        self.client.db.Chat.add_chat_id_in_event(M.chat_id)
+        self.client.db.Chat.update_chat_datas(M.chat_id,{"settings": {"events": True}})
         await self.client.send_message(
-            M.chat_id, f"Event has been activated in {M.chat_title}"
+            M.chat_id, f"**Event** has been activated in:\n\n{M.chat_title}"
         )
+
+
+

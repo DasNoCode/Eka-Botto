@@ -13,7 +13,8 @@ class SuperClient(Client):
         api_id: int,
         api_hash: str,
         bot_token: str,
-        filepath: str,
+        user_db_filepath: str,
+        chat_db_filepath: str,
         prefix: str,
         owner_id: int
     ):
@@ -22,14 +23,14 @@ class SuperClient(Client):
         )
         self.prifix = prefix
         self.log = get_logger()
-        self.filepath = filepath
+        self.database = user_db_filepath, chat_db_filepath
         self.utils = Utils()
         self.owner_id = owner_id
 
 
     @property
     def db(self):
-        return db(self.filepath)
+        return db(self.database)
 
     async def admincheck(self, message):
         isadmin = await self.get_chat_member(message.chat.id, message.from_user.id)
@@ -93,3 +94,18 @@ class SuperClient(Client):
             if user["user_id"] == user_id:
                 return index
         return -1
+
+
+    async def get_admins_and_owner(self, chat_id):
+        admins_info = []
+        owner_info = None
+    
+        async for member in self.get_chat_members(chat_id, filter=enums.ChatMembersFilter.ADMINISTRATORS):
+            user = member.user
+            username = user.username if user.username else f"{user.first_name or ''} {user.last_name or ''}".strip()
+            if member.status == "creator":
+                owner_info = (username, user.id)
+            elif member.status == "administrator":
+                admins_info.append((username, user.id))
+        return owner_info, admins_info
+

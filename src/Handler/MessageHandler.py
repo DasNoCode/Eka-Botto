@@ -15,8 +15,8 @@ class MessageHandler:
         self.__client = client
         self.commandMap = {}
 
-    async def handler(self, messageObj: Message):
-        messageText = messageObj.message
+    async def handler(self, M: Message):
+        messageText = M.message
         commandContext = self.parseArgs(messageText)
 
         if messageText is None:
@@ -25,57 +25,57 @@ class MessageHandler:
         isCommand = messageText.startswith(self.__client.prifix)
 
         # === AFK Handling ===
-        mentionedUser = messageObj.mentioned[0] if messageObj.mentioned else None
+        mentionedUser = M.mentioned[0] if M.mentioned else None
         mentionedUserId = getattr(mentionedUser, "user_id", None)
         mentionedAFK = (
             self.__client.db.User.get_user(mentionedUserId).get("afk", {"is_afk": False})
             if mentionedUserId else {"is_afk": False}
         )
 
-        repliedUser = getattr(messageObj.reply_to_message, "replied_user", None)
+        repliedUser = getattr(M.reply_to_message, "replied_user", None)
         repliedUserId = repliedUser.user_id if repliedUser else None
         repliedAFK = self.__client.db.User.get_user(repliedUserId).get("afk", {"is_afk": False})
 
-        userData = self.__client.db.User.get_user(messageObj.sender.user_id)
+        userData = self.__client.db.User.get_user(M.sender.user_id)
         if userData["afk"]["is_afk"]:
             currentTime = datetime.now().time().strftime("%H:%M:%S")
-            self.__client.db.User.set_afk(messageObj.sender.user_id, False, None, currentTime)
+            self.__client.db.User.set_afk(M.sender.user_id, False, None, currentTime)
             await self.__client.send_message(
-                messageObj.chat_id,
-                f"__@{messageObj.sender.user_name} nice to see you again!__"
+                M.chat_id,
+                f"__@{M.sender.user_name} nice to see you again!__"
             )
 
         if mentionedAFK["is_afk"] and repliedAFK["is_afk"]:
             return await self.__client.send_message(
-                messageObj.chat_id,
-                f"__@{messageObj.sender.user_name} @{mentionedUser.user_name} is currently offline.\n"
+                M.chat_id,
+                f"__@{M.sender.user_name} @{mentionedUser.user_name} is currently offline.\n"
                 f"**Reason** : {mentionedAFK.get('afk_reason', 'None')}__"
             )
         elif mentionedAFK["is_afk"]:
             await self.__client.send_message(
-                messageObj.chat_id,
-                f"__@{messageObj.sender.user_name} @{mentionedUser.user_name} is currently offline.\n"
+                M.chat_id,
+                f"__@{M.sender.user_name} @{mentionedUser.user_name} is currently offline.\n"
                 f"**Reason** : {mentionedAFK.get('afk_reason', 'None')}__"
             )
         elif repliedAFK["is_afk"]:
             await self.__client.send_message(
-                messageObj.chat_id,
-                f"__@{messageObj.sender.user_name} @{repliedUser.user_name} is currently offline.\n"
+                M.chat_id,
+                f"__@{M.sender.user_name} @{repliedUser.user_name} is currently offline.\n"
                 f"**Reason** : {repliedAFK.get('afk_reason', 'None')}__"
             )
 
         # === Message Logging if Not Command ===
         if not isCommand:
             self.__client.log.info(
-                f"[MSG]: From {messageObj.chat_type} by {messageObj.sender.user_name} "
-                f"({'ADMIN' if messageObj.isAdmin else 'NOT ADMIN'})"
+                f"[MSG]: From {M.chat_type} by {M.sender.user_name} "
+                f"({'ADMIN' if M.isAdmin else 'NOT ADMIN'})"
             )
             return
 
         # === Command Parsing and Execution ===
         if messageText == self.__client.prifix:
             return await self.__client.send_message(
-                messageObj.chat_id,
+                M.chat_id,
                 f"__Enter a command following {self.__client.prifix}__"
             )
 
@@ -84,33 +84,35 @@ class MessageHandler:
 
         if not commandObj:
             return await self.__client.send_message(
-                messageObj.chat_id,
+                M.chat_id,
                 "__Command does not available!!__"
             )
 
         if commandObj.config.xp:
-            await self.__client.xp_lvl(messageObj)
+            await self.__client.xp_lvl(M)
 
-        if commandObj.config.OwnerOnly and str(messageObj.sender.user_id) != self.__client.owner_id:
+        if commandObj.config.OwnerOnly and str(M.sender.user_id) != self.__client.owner_id:
             return await self.__client.send_message(
-                messageObj.chat_id,
+                M.chat_id,
                 "__This command can only be used by the owner!!__"
             )
 
-        if commandObj.config.AdminOnly and not messageObj.isAdmin:
+        if commandObj.config.AdminOnly and not M.isAdmin:
             return await self.__client.send_message(
-                messageObj.chat_id,
+                M.chat_id,
                 "__This command can only be used by an admin!!__"
             )
 
         self.__client.log.info(
-            f"[CMD]: {self.__client.prifix}{commandName} from {messageObj.chat_type} "
-            f"by {messageObj.sender.user_name} "
-            f"({'ADMIN' if messageObj.isAdmin else 'NOT ADMIN'})"
+            f"[CMD]: {self.__client.prifix}{commandName} from {M.chat_type} "
+            f"by {M.sender.user_name} "
+            f"({'ADMIN' if M.isAdmin else 'NOT ADMIN'})"
         )
 
-        self.__client.db.Botdb.add_chat_id_in_chat_id(messageObj.chat_id)
-        await commandObj.exec(messageObj, commandContext)
+        if M.chat_type == "SUPERGROUP" :
+            self.__client.db.Chat.get_chat_data(M.chat_id)
+
+        await commandObj.exec(M, commandContext)
 
     def loadCommands(self, folderPath):
         for fileName in os.listdir(folderPath):

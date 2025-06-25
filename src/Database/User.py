@@ -82,7 +82,6 @@ class User:
         if not user:
             return
         user["xp"] = xp
-        print("last lvl:", last_lvl)
         user["last_lvl"] = last_lvl
         user["lvl"] = lvl
         self.update_user(user_id, user)

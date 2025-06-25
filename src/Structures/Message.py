@@ -1,8 +1,7 @@
 from Helpers.JsonObject import JsonObject
 from Structures.Client import SuperClient
+from pyrogram import enums
 
-
-# Sepent 20+ hours on it so try respecting it
 class Message:
 
     media_types = ["voice", "animation", "audio", "photo", "video"]
@@ -124,6 +123,7 @@ class Message:
                 }
             )
         return self
+
 
     def raw(self):
         return self.__m
