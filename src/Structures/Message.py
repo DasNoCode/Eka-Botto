@@ -1,6 +1,5 @@
 from Helpers.JsonObject import JsonObject
 from Structures.Client import SuperClient
-from pyrogram import enums
 
 class Message:
 

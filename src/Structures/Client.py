@@ -33,11 +33,13 @@ class SuperClient(Client):
         return db(self.database)
 
     async def admincheck(self, message):
-        isadmin = await self.get_chat_member(message.chat.id, message.from_user.id)
-        return isadmin.status in [
-            enums.ChatMemberStatus.OWNER,
-            enums.ChatMemberStatus.ADMINISTRATOR,
-        ]
+        if message.chat.type in ("group", "supergroup", "channel"):
+            isadmin = await self.get_chat_member(message.chat.id, message.from_user.id)
+            return isadmin.status in [
+                enums.ChatMemberStatus.OWNER,
+                enums.ChatMemberStatus.ADMINISTRATOR,
+            ]
+        return None
     async def xp_lvl(self, message, xp_gained=None):
         result = self.db.User.get_user(message.sender.user_id)
         xp = result["xp"]

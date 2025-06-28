@@ -17,7 +17,7 @@ class Command(BaseCommand):
                 "AdminOnly": False,
                 "OwnerOnly": False,
                 "description": {
-                    "content": "Set yourself to afk.When marked as AFK, any mentions will be replied to with a message to say you're not available!And that mentioned will notify you by your Assistant."
+                    "content": "Set yourself as AFK. Mentions will auto-reply that you're unavailable and notify you when you're mentioned."
                 },
             },
         )
@@ -30,16 +30,9 @@ class Command(BaseCommand):
             return await self.client.send_message(
                 M.chat_id, f"@{M.sender.user_name} you are already in afk"
             )
-
-        if not context[1]:
-            self.client.db.User.set_afk(M.sender.user_id, True, None, current_time)
-            await self.client.send_message(
-                M.chat_id, f"@{M.sender.user_name} You are afk now!"
-            )
-        else:
-            self.client.db.User.set_afk(
-                M.sender.user_id, True, context[1], current_time
-            )
-            await self.client.send_message(
-                M.chat_id, f"@{M.sender.user_name} you are afk now!"
-            )
+        self.client.db.User.set_afk(
+            M.sender.user_id, True, context[1] if context[1] else None, current_time
+        )
+        await self.client.send_message(
+            M.chat_id, f"@{M.sender.user_name} you are afk now!"
+        )

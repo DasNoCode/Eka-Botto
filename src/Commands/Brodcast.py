@@ -19,8 +19,9 @@ class Command(BaseCommand):
         )
 
     async def exec(self, M: Message, contex):
-        chat_ids = self.client.db.Botdb.get_all_chat_id()
-        for chat_id in chat_ids:
+        chat_data = self.client.db.Chat.get_chat_data(M.chat_id)
+        
+        for chat_id in chat_data.get("chat_id"):
             await self.client.send_message(
-                chat_id, f"__**BRODCAST**__\n{M.reply_to_message.text}"
+                chat_id, f"**BRODCAST 📣**\n\n{M.reply_to_message.text}"
             )

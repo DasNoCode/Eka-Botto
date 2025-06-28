@@ -29,7 +29,7 @@ class Chat:
                 "captchas": chat_datas.get("captchas", False),
                 "welcome_enabled": chat_datas.get("settings", {}).get("welcome_enabled", False),
                 "welcome_message": chat_datas.get("settings", {}).get(
-                    "welcome_message", f"Welcome to {chat_datas.get('chat_title', '')} user!"
+                    "welcome_message", f"Welcome to {chat_datas.get('chat_title', None)} user!"
                 ),
             },
             "stats": {

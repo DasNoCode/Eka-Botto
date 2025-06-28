@@ -23,8 +23,8 @@ class User:
             "user_id": user_data["user_id"],
             "afk": {
                 "is_afk": user_data.get("afk", {}).get("is_afk", False),
-                "afk_reason": user_data.get("afk", {}).get("afk_reason", ""),
-                "time": user_data.get("afk", {}).get("time", ""),
+                "afk_reason": user_data.get("afk", {}).get("afk_reason", None),
+                "time": user_data.get("afk", {}).get("time", None),
             },
             "lvl": user_data.get("lvl", 1),
             "last_lvl": user_data.get("last_lvl", 1),
@@ -38,9 +38,10 @@ class User:
                 "total_game_played": user_data.get("rps", {}).get("total_game_played", 0)
             },
             "ban": {
+                "no_of": user_data.get("ban", {}).get("no_of", 0),
                 "is_ban": user_data.get("ban", {}).get("is_ban", False),
-                "reason": user_data.get("ban", {}).get("reason", ""),
-                "time": user_data.get("ban", {}).get("time", ""),
+                "reason": user_data.get("ban", {}).get("reason", None),
+                "time": user_data.get("ban", {}).get("time", None),
             },
         }
 
@@ -100,7 +101,7 @@ class User:
         user["rps"] += 1
         self.update_user(user_id, user)
 
-    def update_ban(self, user_id, is_ban, time, reason=""):
+    def update_ban(self, user_id, is_ban, time, reason=None):
         user = self.get_user(user_id)
         if not user:
             return

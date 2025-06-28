@@ -30,5 +30,5 @@ class Command(BaseCommand):
         date = datetime.now().strftime("%Y-%m-%d")
         await self.client.send_message(
             M.chat_id,
-            f"• **Status**: __Working__\n• **Data**: __{date}__\n• **Time**: __{now}__\n• **Uptime**: __{self.client.utils.uptime()}__\n• **CPU**: __{cpu_usage}%__\n• **Memory**: __{memory_usage}%__",
+            f"💻  **Status**\n\n**Data:** {date}\n\n**Time:** {now}\n\n**Uptime:** {self.client.utils.uptime()}\n\n**CPU:** {cpu_usage}%\n\n**Memory:** {memory_usage}%",
         )

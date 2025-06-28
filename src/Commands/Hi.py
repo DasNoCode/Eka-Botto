@@ -19,7 +19,7 @@ class Command(BaseCommand):
             },
         )
 
-    async def exec(self, M: Message, contex):
+    async def exec(self, M: Message, context):
         await self.client.send_message(
             M.chat_id, f"Hey, @{M.sender.user_name} how is your day today? Use /help to user the Bot!"
         )

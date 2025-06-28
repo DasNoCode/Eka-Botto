@@ -1,10 +1,7 @@
 import importlib.util
 import os
-import random
 import re
 from datetime import datetime
-
-from Helpers import Utils
 from Structures.Client import SuperClient
 from Structures.Message import Message
 
@@ -37,13 +34,15 @@ class MessageHandler:
         repliedAFK = self.__client.db.User.get_user(repliedUserId).get("afk", {"is_afk": False})
 
         userData = self.__client.db.User.get_user(M.sender.user_id)
-        if userData["afk"]["is_afk"]:
-            currentTime = datetime.now().time().strftime("%H:%M:%S")
-            self.__client.db.User.set_afk(M.sender.user_id, False, None, currentTime)
-            await self.__client.send_message(
-                M.chat_id,
-                f"__@{M.sender.user_name} nice to see you again!__"
-            )
+
+        if M.message.split()[0] != "/afk":
+            if userData["afk"]["is_afk"]:
+                currentTime = datetime.now().time().strftime("%H:%M:%S")
+                self.__client.db.User.set_afk(M.sender.user_id, False, None, currentTime)
+                await self.__client.send_message(
+                    M.chat_id,
+                    f"__@{M.sender.user_name} nice to see you again!__"
+                )
 
         if mentionedAFK["is_afk"] and repliedAFK["is_afk"]:
             return await self.__client.send_message(
