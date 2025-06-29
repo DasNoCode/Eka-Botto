@@ -46,12 +46,12 @@ class Command(BaseCommand):
                 MAX_MESSAGE_LENGTH = 4096
 
                 REPLY = (
-                    f"[**GitHub Info 🧑‍💻**]\n"
-                    f"• **Username** : `{username}`\n"
-                    f"• **Bio** : __{bio}__\n"
-                    f"• **URL** : __{url}__\n"
-                    f"• **Company** : __{company}__\n"
-                    f"• **Created at** : __{created_at}__\n"
+                    "🧑‍💻 **GitHub Info**\n\n"
+                    f"**Username:** `{username}`\n\n"
+                    f"**Bio:** {bio}\n\n"
+                    f"**URL:** {url}\n\n"
+                    f"**Company:** {company}\n"
+                    f"**Created at:** {created_at}\n"
                 )
 
                 if not result.get("repos_url"):

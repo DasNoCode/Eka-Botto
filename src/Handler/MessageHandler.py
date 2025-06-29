@@ -90,7 +90,7 @@ class MessageHandler:
         if commandObj.config.xp:
             await self.__client.xp_lvl(M)
 
-        if commandObj.config.OwnerOnly and str(M.sender.user_id) != self.__client.owner_id:
+        if commandObj.config.OwnerOnly and M.sender.user_id != self.__client.owner_id:
             return await self.__client.send_message(
                 M.chat_id,
                 "__This command can only be used by the owner!!__"

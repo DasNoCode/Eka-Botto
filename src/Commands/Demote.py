@@ -45,5 +45,5 @@ class Command(BaseCommand):
         )
         await self.client.send_message(
             M.chat_id,
-            f"__Successfully demoted @{user_name} to user in {M.chat_title}__",
+            f"Successfully demoted @{user_name} to user in {M.chat_title}",
         )

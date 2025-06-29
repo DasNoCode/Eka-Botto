@@ -14,7 +14,7 @@ class Command(BaseCommand):
                 "xp": False,
                 "AdminOnly": True,
                 "OwnerOnly": False,
-                "description": {"content": "Ban user from the chat"},
+                "description": {"content": "kick the user from the chat"},
             },
         )
 
@@ -31,5 +31,6 @@ class Command(BaseCommand):
         await self.client.ban_chat_member(M.chat_id, user_id)
         await self.client.send_message(
             M.chat_id,
-            f"__Successfully banned @{user_name} from {M.chat_title}__",
+            f"Successfully banned @{user_name} from {M.chat_title}",
         )
+        await self.unban_chat_member(M.chat_id, user_id)

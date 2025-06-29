@@ -45,5 +45,5 @@ class Command(BaseCommand):
         )
         await self.client.send_message(
             M.chat_id,
-            f"__Successfully promoted @{user_name} to admin in {M.chat_title}__",
+            f"Successfully promoted @{user_name} to admin in {M.chat_title}",
         )

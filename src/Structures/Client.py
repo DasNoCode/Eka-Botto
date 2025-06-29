@@ -16,7 +16,8 @@ class SuperClient(Client):
         user_db_filepath: str,
         chat_db_filepath: str,
         prefix: str,
-        owner_id: int
+        owner_id: int,
+        bot_id:int
     ):
         super().__init__(
             name=name, api_id=api_id, api_hash=api_hash, bot_token=bot_token
@@ -26,6 +27,7 @@ class SuperClient(Client):
         self.database = user_db_filepath, chat_db_filepath
         self.utils = Utils()
         self.owner_id = owner_id
+        self.bot_id = bot_id
 
 
     @property

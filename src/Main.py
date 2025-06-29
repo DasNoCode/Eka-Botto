@@ -15,7 +15,8 @@ api_id = config("APP_ID", default=None, cast=int)
 api_hash = config("API_HASH", default=None)
 bot_token = config("BOT_TOKEN", default=None)
 prefix = config("PREFIX", default=None)
-owner_id = config("OWNER_ID", default=None)
+owner_id = config("OWNER_ID", default=None, cast=int)
+bot_id = config("BOT_ID", default=None, cast=int)
 user_db_filepath = config("USER_DB_FILEPATH", default="UserDatabse.json")
 chat_db_filepath = config("CHAT_DB_FILEPATH", default="ChatDatabse.json")
 bot_name_ASCII = config("BOT_NAME_ASCII", default="Bot is Online!")
@@ -30,7 +31,8 @@ Bot = SuperClient(
     user_db_filepath=user_db_filepath,
     chat_db_filepath=chat_db_filepath,
     prefix=prefix,
-    owner_id=owner_id
+    owner_id=owner_id,
+    bot_id=bot_id
 
 )
 

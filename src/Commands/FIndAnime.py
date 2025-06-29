@@ -29,7 +29,7 @@ class Command(BaseCommand):
         if M.msg_type not in self.media_types:
             return await self.client.send_message(
                 M.chat_id,
-                f"@{M.sender.user_name} __Replied to a Gif, Image, or Video__",
+                f"@{M.sender.user_name} Replied to a Gif, Image, or Video",
             )
 
         file_path = f"downloads/{M.file_id}.{self.media_types[M.msg_type]}"
